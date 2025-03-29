@@ -1,0 +1,10 @@
+runtime: python39  # Specifies the Python runtime version
+
+entrypoint: gunicorn --bind 0.0.0.0:8080 app:app
+
+automatic_scaling:
+  min_instances: 0  # Allow scaling down to zero instances when there's no traffic
+  max_instances: 1  # Limit to a maximum of 1 instance
+  target_cpu_utilization: 0.65  # Optional: Control the CPU utilization target for scaling
+
+instance_class: F1  # Optional: Use F1 instance (512MB memory)

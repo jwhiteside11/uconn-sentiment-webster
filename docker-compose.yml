@@ -1,0 +1,51 @@
+services:
+  rproxy:
+    build: ./reverse-proxy
+    image: reverse_proxy:latest
+    ports:
+      - "5100:5100"
+    restart: always
+    depends_on:
+      - auth
+      - typesense
+      - ckury
+      - fetchers
+
+  auth:
+    build: ./auth-server
+    image: auth_server:latest
+    ports:
+      - "5200:5200"
+    environment:
+      - SECRET_KEY=supersecretkey
+
+  fetchers:
+    build: ./data-fetchers
+    image: fetch_server:latest
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    ports:
+      - "5300:5300"
+    restart: always
+    # volumes:
+    #   - ~/.config/gcloud/application_default_credentials.json:/gcp/creds.json:ro
+    # environment:
+    #   - GOOGLE_APPLICATION_CREDENTIALS=/gcp/creds.json
+    #   - GOOGLE_CLOUD_PROJECT=sentiment-test-417820
+    # # REMOVE COMMENTS ABOVE FOR LOCAL DEVELOPMENT #
+
+  ckury:
+    build: ./ckury-services
+    image: model_server:latest
+    ports:
+      - "5400:5400"
+    restart: always
+
+  typesense:
+    image: typesense/typesense:28.0
+    ports:
+      - "8108:8108"
+    volumes:
+      - /tmp/data:/data
+    command: --data-dir /data --api-key=Hu52dwsas2AdxdE
+    restart: always

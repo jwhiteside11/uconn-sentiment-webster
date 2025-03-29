@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<head>
+  <style>
+    a {
+      color: #000000;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<html>
+  <body>
+    <h1>Search news articles</h1>
+
+    <p>Ticker:</p>
+    <select name="ticker" id="ticker-select">
+      <option value="WBS">WBS</option>
+      {% for item in ticker_list %}
+        {% if item.value != "WBS" %}
+          <option value="{{item.value}}">{{ item.value }}</option>
+        {% endif %}
+      {% endfor %}
+    </select>
+
+    <p>Search:</p>
+    <input type="text" name="search_term" id="search-bar"/>
+
+    <div id="search-results">
+    </div>
+    <script src="{{ url_for('static', filename='js/search.js') }}"></script>
+  </body>
+</html>

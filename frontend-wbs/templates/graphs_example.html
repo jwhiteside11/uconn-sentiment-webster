@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+  <body>
+    <h1>Graph news articles</h1>
+
+    <p>Ticker:</p>
+    <select name="ticker" id="ticker-select">
+      <option value="WBS">WBS</option>
+      {% for item in ticker_list %}
+        {% if item.value != "WBS" %}
+          <option value="{{item.value}}">{{ item.value }}</option>
+        {% endif %}
+      {% endfor %}
+    </select>
+
+    <div id="summary-results">
+      {% for item in summary.documents %}
+        <p>{{ item }}</p>
+      {% endfor %}
+    </div>
+
+    <script src="{{ url_for('static', filename='js/graph.js') }}"></script>
+  </body>
+</html>

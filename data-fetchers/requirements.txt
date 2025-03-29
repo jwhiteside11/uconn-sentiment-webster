@@ -1,0 +1,10 @@
+beautifulsoup4==4.13.3
+Flask==3.1.0
+flask_cors==5.0.1
+pandas==2.2.3
+protobuf==5.29.3
+Requests==2.32.3
+selenium==4.29.0
+typesense==0.21.0
+google-cloud-datastore==2.20.2
+gunicorn==23.0.0

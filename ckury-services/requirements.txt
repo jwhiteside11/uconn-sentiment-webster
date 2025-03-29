@@ -1,0 +1,12 @@
+beautifulsoup4==4.13.3
+nltk==3.9.1
+pandas==2.2.3
+protobuf==5.29.3
+google-cloud-datastore==2.20.2
+PyYAML==6.0.2
+scikit_learn==1.6.1
+torch==2.6.0
+transformers==4.49.0
+openpyxl==3.1.2
+Flask==3.1.0
+gunicorn==23.0.0
