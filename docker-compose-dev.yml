@@ -1,7 +1,9 @@
 services:
   rproxy:
-    build: ./reverse-proxy
-    image: reverse_proxy:latest
+    build: 
+      context: ./backend/reverse-proxy
+      dockerfile: Dockerfile.dev
+    image: reverse_proxy_dev:latest
     ports:
       - "5100:5100"
     restart: always
@@ -12,7 +14,7 @@ services:
       - fetchers
 
   auth:
-    build: ./auth-server
+    build: ./backend/auth-server
     image: auth_server:latest
     ports:
       - "5200:5200"
@@ -20,16 +22,21 @@ services:
       - SECRET_KEY=supersecretkey
 
   fetchers:
-    build: ./data-fetchers
+    build: ./backend/data-fetchers
     image: fetch_server:latest
     extra_hosts:
       - "host.docker.internal:host-gateway"
     ports:
       - "5300:5300"
     restart: always
+    volumes:
+      - ~/.config/gcloud/application_default_credentials.json:/gcp/creds.json:ro
+    environment:
+      - GOOGLE_APPLICATION_CREDENTIALS=/gcp/creds.json
+      - GOOGLE_CLOUD_PROJECT=sentiment-test-417820
 
   model:
-    build: ./sentiment-model
+    build: ./backend/sentiment-model
     image: model_server:latest
     ports:
       - "5400:5400"
@@ -43,3 +50,12 @@ services:
       - /tmp/data:/data
     command: --data-dir /data --api-key=Hu52dwsas2AdxdE
     restart: always
+
+  frontend:
+    build: ./frontend
+    image: frontend_wbs:latest
+    ports:
+      - "8080:8080"
+    restart: always
+    environment:
+      - WBS_API_URL=http://host.docker.internal:5100

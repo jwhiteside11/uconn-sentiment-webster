@@ -1,12 +1,8 @@
-const DEV_AUTH_URL = "http://localhost:5100/auth";
-const PROD_AUTH_URL = "http://34.44.103.189:5100/auth";
-const ACTIVE_AUTH_URL = PROD_AUTH_URL;
-
 const login = () => {
   const username = document.getElementById("username");
   const password = document.getElementById("password");
 
-  fetch(`${ACTIVE_AUTH_URL}/authenticate/`, {
+  fetch(`${AUTH_URL}/authenticate/`, {
     method: 'POST',  // Specify the request method
     headers: {
       'Content-Type': 'application/json',  // Type of data being sent

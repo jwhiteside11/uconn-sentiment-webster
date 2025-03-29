@@ -23,10 +23,8 @@ RUN cp /tmp/chromedriver-linux64/chromedriver /usr/local/bin/
 # set display port to avoid crash
  
 ENV DISPLAY=:99
- 
-# install dependencies
 
-COPY . .
+# install dependencies
 
 COPY requirements.txt /opt/app/requirements.txt
 WORKDIR /opt/app

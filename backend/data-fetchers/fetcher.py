@@ -64,7 +64,7 @@ class Fetcher:
         # score using FinBERT model
         score_res = self.model.score_text('\n'.join(doc.paragraphs))
         if "error" in score_res:
-          results.append({"messsage": f"ERROR {score_res["error"]}"})
+          results.append({"messsage": f"ERROR {score_res['error']}"})
         else:
           doc.score = score_res["score"]
           doc.magnitude = score_res["magnitude"]
