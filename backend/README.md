@@ -29,9 +29,9 @@ The backend is now up and running. You can confirm by testing the 'hello, world'
 curl 'http://localhost:5100/api' -H 'WBS-API-PASSKEY: ...'
 ```
 
-The main API is `data-fetchers` service, exposed through Nginx by the `/api` endpoint. Refer to the [API reference](/data-fetchers#api-reference) for useful API endpoints. **Note:** each request must contain `WBS-API-PASSKEY` as either a header or a cookie for authorization.
+The main API is `data-fetchers` service, exposed through Nginx by the `/api` endpoint. Refer to the [API reference](/backend/data-fetchers#api-reference) for useful API endpoints. **Note:** each request must contain `WBS-API-PASSKEY` as either a header or a cookie for authorization.
 
-The `auth-server` is exposed through Nginx by the `/auth` endpoint. Refer to the [API reference](/auth-server#api-reference) for authorization endpoints.
+The `auth-server` is exposed through Nginx by the `/auth` endpoint. Refer to the [API reference](/backend/auth-server#api-reference) for authorization endpoints.
   
 
 **Containerized Services**:
