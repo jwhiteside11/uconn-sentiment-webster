@@ -34,8 +34,8 @@ services:
     #   - GOOGLE_CLOUD_PROJECT=sentiment-test-417820
     # # REMOVE COMMENTS ABOVE FOR LOCAL DEVELOPMENT #
 
-  ckury:
-    build: ./ckury-services
+  model:
+    build: ./sentiment-model
     image: model_server:latest
     ports:
       - "5400:5400"

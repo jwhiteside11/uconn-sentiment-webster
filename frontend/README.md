@@ -21,13 +21,17 @@ Visit `localhost:8080` in a browser to view the login page.
 
 # Deployment
 
-To deploy the application as an App Engine service, use the following command.
+First, verify that you are working on the `sentiment-test` project:
+
+```bash
+gcloud config get-value project
+```
+
+Then, deploy the application as an App Engine service based on the configuration in `app.yaml`:
 
 ```bash
 gcloud app deploy
 ```
-
-The app deploys based on the configuration in `app.yaml`.
 
 ## Routes
 
