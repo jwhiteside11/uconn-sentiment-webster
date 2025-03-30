@@ -1,15 +1,13 @@
-# CODE MERGE AND CLEANUP IN-PROGRESS
-	
-# Sentiment Project Backend
-This repository holds all of the code needed by the virtual machine to:
-1. Score conference calls
-2. Summarize data
-3. Upload data to cloud datastore. 
+# Sentiment Scoring Model
 
-Please note that most of this code has been developed by others and only was cleaned up by me and consolidated into a single repository to improve the ease of cloning data into the virtual machine.
+This repository holds all of the code needed by the virtual machine to provide a sentiment score for a block of text.
+
+## From past students' works
+
+This code was copied into this respository from [ckury's backend repo](https://github.com/ckury/uconn-sentiment-backend), leaving behind everything but the sentiment scoring functionality. As with all the services, it is exposed as a Flask server.
 
 # API reference
-This code is wrapped with a Flask server. Interact with this code base using HTTP calls to `localhost:5200`. 
+Interact with the flask server using HTTP calls to `localhost:5400`. 
 
 In the examples below, I use the `curl` shell command, but you can interface with the containers any HTTP library in any language.
 

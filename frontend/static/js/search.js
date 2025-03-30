@@ -1,7 +1,4 @@
-const DEV_API_URL = "http://localhost:5100/api";
-const PROD_API_URL = "http://34.44.103.189:5100/api";
-const ACTIVE_API_URL = PROD_API_URL;
-
+const SEARCH_URL = `${API_URL.replace("host.docker.internal", "localhost")}/search_news`
 function getCookie(name) {
   const value = `; ${document.cookie}`;
   const parts = value.split(`; ${name}=`);
@@ -38,7 +35,7 @@ const monitorSearchBar = () => {
 const updateSearchResults = () => {
   const headers = {"WBS-API-PASSKEY": getCookie("WBS-API-PASSKEY")}
   console.log(headers)
-  fetch(`${ACTIVE_API_URL}/search_news?${activeQuery}`, {headers})
+  fetch(`${SEARCH_URL}?${activeQuery}`, {headers})
   .then(res => res.json() )
   .then(json => {
     console.log(json)

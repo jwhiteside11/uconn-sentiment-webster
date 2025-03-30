@@ -1,0 +1,10 @@
+version: '3.8'
+services:
+  frontend:
+    build: .
+    image: frontend_wbs:latest
+    ports:
+      - "8080:8080"
+    restart: always
+    environment:
+      - WBS_API_URL=http://host.docker.internal:5100

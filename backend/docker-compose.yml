@@ -8,7 +8,7 @@ services:
     depends_on:
       - auth
       - typesense
-      - ckury
+      - model
       - fetchers
 
   auth:
@@ -27,15 +27,9 @@ services:
     ports:
       - "5300:5300"
     restart: always
-    # volumes:
-    #   - ~/.config/gcloud/application_default_credentials.json:/gcp/creds.json:ro
-    # environment:
-    #   - GOOGLE_APPLICATION_CREDENTIALS=/gcp/creds.json
-    #   - GOOGLE_CLOUD_PROJECT=sentiment-test-417820
-    # # REMOVE COMMENTS ABOVE FOR LOCAL DEVELOPMENT #
 
-  ckury:
-    build: ./ckury-services
+  model:
+    build: ./sentiment-model
     image: model_server:latest
     ports:
       - "5400:5400"

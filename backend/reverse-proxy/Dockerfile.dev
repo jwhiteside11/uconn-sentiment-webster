@@ -1,0 +1,2 @@
+FROM nginx
+COPY reverse-proxy-dev.conf /etc/nginx/conf.d/reverse-proxy-dev.conf

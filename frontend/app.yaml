@@ -2,6 +2,9 @@ runtime: python39  # Specifies the Python runtime version
 
 entrypoint: gunicorn --bind 0.0.0.0:8080 app:app
 
+env_variables: 
+  WBS_API_URL: "http://34.44.103.189:5100"
+
 automatic_scaling:
   min_instances: 0  # Allow scaling down to zero instances when there's no traffic
   max_instances: 1  # Limit to a maximum of 1 instance

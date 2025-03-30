@@ -51,7 +51,7 @@ def login():
 def search_news():
     passkey = request.cookies.get('WBS-API-PASSKEY')
     res = api_client.get_tickers(passkey).json()
-    return render_template("search_news.html", ticker_list=res["tickers"])
+    return render_template("search_news.html", ticker_list=res["tickers"], api_url=api_client.PUBLIC_API_URL)
 
 
 # Data visualization graphs - TODO
