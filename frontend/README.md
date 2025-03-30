@@ -1,8 +1,8 @@
 # Frontend Flask application for Webster Bank
 
-The frontend consists of a Flask application with HTML views and a client for accessing the backend API. This app was designed to run **seperately** from the backend, which is why is is excluded from `docker-compose.yml`.
+The frontend consists of a Flask application with HTML views and a client for accessing the backend API. The frontend is deployed as an App Engine service in the `sentiment-test` project. 
 
-The frontend is deployed as an App Engine service in the `sentiment-test` project. The frontend has a backend API client that assumes the backend services are running on the `sentiment-prod` VM in the `sentiment-analysis` project (see [backend Quick start](/backend#Quick+start)). 
+The backend API client that assumes the backend services are running on the `sentiment-prod` VM in the `sentiment-analysis` project (see backend [Deployment](/backend#Deployment) guide). 
 
 # Quick start
 
@@ -17,7 +17,9 @@ python3 app.py
 gunicorn --bind 0.0.0.0:8080 app:app
 ```
 
-Visit `localhost:8080` in a browser to view the login page.
+Visit `localhost:8080` in a browser to view the login page. 
+
+**Note:** The frontend can't do much without the backend running, but this can be useful for development.
 
 # Deployment
 

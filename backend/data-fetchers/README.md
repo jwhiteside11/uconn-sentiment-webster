@@ -9,70 +9,33 @@ The code is designed to run on the Compute Engine VM. This subfolder uses Docker
 
 # Quick start
 
-First, SSH into the VM.
+To run the `data-fetchers` locally, it is easiest to just run the full application locally using `docker compose`.
 
-From there, pull the code into the VM.
 ```bash
-# if you don't already have the code base on your VM
-git clone https://github.com/jwhiteside11/uconn-sentiment-backend.git
-
-# if you DO already have the code, the following will update
-git pull https://github.com/jwhiteside11/uconn-sentiment-backend.git
+# from root folder
+docker compose -f docker-compose-local.yml up
 ```
 
-Navigate to this subfolder.
+Everything is now up and running. Test it by logging into the `auth-server`.
 ```bash
-cd uconn-sentiment-backend/data-fetchers
+curl -X POST 'localhost:5100/auth/authenticate' -H "Content-Type: application/json" -d '{"username": "testuser": "password123"}'
 ```
 
-From here, we must get Docker up and running. Begin by installing Docker on your VM instance.
+This will return a passkey. The passkey is needed for requests to the API.
 ```bash
-sudo apt install docker.io
+curl 'localhost:5100/api' -H "WBS-API-PASSKEY: ..."
 ```
 
-To run these containers on our VM at the same time, we will use the shell command `tmux`. If you are not already familiar, review [this guide](https://hamvocke.com/blog/a-quick-and-easy-guide-to-tmux/) before proceeding.
-
-Then, we must pull the Typesense image, and run it on our VM. 
+**Note:** if the build environment changes, the Typesense server must be backfilled with the news we've scraped into datastore. After the first build, the index will be stored in the attached container volume. There is an endpoint for backfilling after the first build.
 ```bash
-tmux new-session -A -t typesense
-
-# from tmux session
-sudo docker pull typesense/typesense:28.0
-
-sudo docker run -p 8108:8108 -v/tmp/data:/data typesense/typesense:28.0 --data-dir /data --api-key=Hu52dwsas2AdxdE
-# (Ctrl + B) + D
-```
-
-Now, Typesense is up and running in a container, and accessible via HTTP. 
-
-We are going to do pretty much the same for the Python code we wrote, this time using a local Dockerfile.
-```bash
-tmux new-session -A -t fetch_server
-
-# from tmux session
-sudo docker build --tag fetch_server .
-
-sudo docker run --add-host=host.docker.internal:host-gateway -p 5100:5100 fetch_server
-# (Ctrl + B) + D
-```
-
-So we have two Docker containers up and running. To interact with these services, we can use HTTP calls.
-
-Everything is now up and running. Test the server using the `Hello world!` example.
-```bash
-curl 'localhost:5100/'
-```
-
-**Note:** if the build environment changes, the server must be backfilled with the news we've scraped into datastore. After the first build, the index will be stored in the attached container volume. There is an endpoint for backfilling after the first build.
-```bash
-curl 'localhost:5100/backfill_typesense'
+curl 'localhost:5100/api/backfill_typesense' -H "WBS-API-PASSKEY: ..."
 ```
 
 ## Authentication
 
 Every request to `data-fetchers` must provide a valid passkey as a cookie or a header with the key `WBS-API-PASSKEY`. Requests with missing or invalid tokens are returned an error message.
 
-To retrieve a token, one must log in using the `auth-server`. See the [API reference](/auth-server#api-reference) for more info.
+To retrieve a token, one must log in using the `auth-server`. See the example in [Quick start](#quick-start) for more info.
 
 # API reference
 This code is wrapped with a Flask server. Interact with this code base using HTTP calls to `localhost:5100`. 
@@ -95,7 +58,7 @@ Scrape news from Yahoo Finance using Selenium and requests.
 | `ticker`       | str    | The ticker of the company of interest (required). |
 
 #### Example Request
-`curl 'localhost:5100/scrape_news?ticker=WBS'`
+`curl 'localhost:5100/api/scrape_news?ticker=WBS' -H "WBS-API-PASSKEY: ..."`
 
 #### Response
 - **Status Code**: 200 OK
@@ -130,7 +93,7 @@ Search for news using Typesense server.
 | `search_term`  | str    | The word/phrase to search for (required). |
 
 #### Example Request
-`curl 'localhost:5100/search_news?ticker=WBS&search_term=bank'`
+`curl 'localhost:5100/api/search_news?ticker=WBS&search_term=bank' -H "WBS-API-PASSKEY: ..."`
 
 #### Response
 - **Status Code**: 200 OK
@@ -170,7 +133,7 @@ Score all news stories for a ticker using sentiment model.
 | `ticker`       | str    | The ticker of the company of interest (required). |
 
 #### Example Request
-`curl 'localhost:5100/score_news?ticker=WBS'`
+`curl 'localhost:5100/api/score_news?ticker=WBS' -H "WBS-API-PASSKEY: ..."`
 
 #### Response
 - **Status Code**: 200 OK
@@ -198,7 +161,7 @@ Backfill Typesense server with news articles from Datastore. It will skip the do
 | `ticker`       | str    | The ticker of the company of interest (optional; if not provided, evrey news document in the Datastore will be indexed). |
 
 #### Example Request
-`curl 'localhost:5100/backfill_typesense?ticker=WBS'`
+`curl 'localhost:5100/api/backfill_typesense?ticker=WBS' -H "WBS-API-PASSKEY: ..."`
 
 #### Response
 - **Status Code**: 200 OK

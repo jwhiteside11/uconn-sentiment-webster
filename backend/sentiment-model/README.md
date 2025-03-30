@@ -1,15 +1,13 @@
+# Sentiment Scoring Model
+
+This repository holds all of the code needed by the virtual machine to provide a sentiment score for a block of text.
+
 ## From past students' works
 
 This code was copied into this respository from [ckury's backend repo](https://github.com/ckury/uconn-sentiment-backend), leaving behind everything but the sentiment scoring functionality. As with all the services, it is exposed as a Flask server.
 
-&nbsp;
-
-# Sentiment Project Backend
-
-This repository holds all of the code needed by the virtual machine to provide a sentiment score for a block of text.
-
 # API reference
-This code is wrapped with a Flask server. Interact with this code base using HTTP calls to `localhost:5200`. 
+Interact with the flask server using HTTP calls to `localhost:5400`. 
 
 In the examples below, I use the `curl` shell command, but you can interface with the containers any HTTP library in any language.
 
