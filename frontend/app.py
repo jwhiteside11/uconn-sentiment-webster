@@ -15,7 +15,7 @@ def passkey_required(f):
             return jsonify({"message": "Passkey is missing."}), 403
         
         passkeyRes = api_client.validate(passkey).json()
-        if not passkeyRes["valid"]:
+        if "valid" not in passkeyRes or not passkeyRes["valid"]:
             return jsonify({"message": passkeyRes["error"]}), 403
         
         # If valid token, proceed with the request

@@ -4,7 +4,7 @@ The frontend consists of a Flask application with HTML views and a client for ac
 
 The backend API client that assumes the backend services are running on the `sentiment-prod` VM in the `sentiment-analysis` project (see backend [Deployment](/backend#Deployment) guide). 
 
-# Quick start
+## Quick start
 
 To run the frontend locally, run as a Flask server or as a gunicorn server.
 
@@ -21,7 +21,7 @@ Visit `localhost:8080` in a browser to view the login page.
 
 **Note:** The frontend can't do much without the backend running, but this can be useful for development.
 
-# Deployment
+## Deployment
 
 First, verify that you are working on the `sentiment-test` project:
 

@@ -2,9 +2,11 @@
 
 This repository holds the backend code for the UConn Sentiment Webster web application. 
 
-The project is structured into subfolders that each represent a microservices. These services are designed to run as Docker containers on the Google Compute Engine production instance. Select a service for more information.
+The project is structured into subfolders that each represent a microservice. These services are designed to run as Docker containers on the Google Compute Engine production instance. Select a service for more information.
 
-To run the backend locally, refer to the application [Quick start](/#Quick+start).
+## Quick start
+
+To run the backend locally, refer to the application [Quick start](/#quick-start).
 
 ## Deployment
 
