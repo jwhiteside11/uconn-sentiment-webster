@@ -7,7 +7,7 @@ This subfolder holds all of the code to:
 
 The code is designed to run on the Compute Engine VM. This subfolder uses Docker to containerize different parts of the application. We will have one container for the Typesense server, and one for the Python code herein.
 
-# Quick start
+## Quick start
 
 To run the `data-fetchers` locally, it is easiest to just run the full application locally using `docker compose`.
 
@@ -18,7 +18,7 @@ docker compose -f docker-compose-local.yml up
 
 Everything is now up and running. Test it by logging into the `auth-server`.
 ```bash
-curl -X POST 'localhost:5100/auth/authenticate' -H "Content-Type: application/json" -d '{"username": "testuser": "password123"}'
+curl -X POST 'localhost:5100/auth/authenticate' -H "Content-Type: application/json" -d '{"username": "testuser", "password": "password123"}'
 ```
 
 This will return a passkey. The passkey is needed for requests to the API.
