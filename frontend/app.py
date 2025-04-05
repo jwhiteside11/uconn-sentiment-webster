@@ -56,12 +56,12 @@ def search_news():
 
 # Data visualization graphs - TODO
 @app.route('/graph_news', methods=['GET'])
-@passkey_required
+# @passkey_required
 def graph():
     passkey = request.cookies.get('WBS-API-PASSKEY')
     ticker_res = api_client.get_tickers(passkey).json()
     summary_res = api_client.get_summary("WBS", passkey).json()
-    return render_template("graphs_example.html", ticker_list=ticker_res["tickers"], summary=summary_res)
+    return render_template("graphs_example.html", ticker_list=ticker_res["tickers"], summary=summary_res, api_url=api_client.PUBLIC_API_URL)
 
 
 if __name__ == "__main__":
