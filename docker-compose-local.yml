@@ -11,7 +11,7 @@ services:
       - auth
       - typesense
       - model
-      - fetchers
+      # - fetchers
 
   auth:
     build: ./backend/auth-server
@@ -34,6 +34,7 @@ services:
     environment:
       - GOOGLE_APPLICATION_CREDENTIALS=/gcp/creds.json
       - GOOGLE_CLOUD_PROJECT=sentiment-test-417820
+      - APININJAS_API_KEY=gOJYKW6v4X61Y7KBN1DDag==ZHXbpX663evhB9YE
 
   model:
     build: ./backend/sentiment-model
@@ -51,11 +52,11 @@ services:
     command: --data-dir /data --api-key=Hu52dwsas2AdxdE
     restart: always
 
-  frontend:
-    build: ./frontend
-    image: frontend_wbs:latest
-    ports:
-      - "8080:8080"
-    restart: always
-    environment:
-      - WBS_API_URL=http://host.docker.internal:5100
+  # frontend:
+  #   build: ./frontend
+  #   image: frontend_wbs:latest
+  #   ports:
+  #     - "8080:8080"
+  #   restart: always
+  #   environment:
+  #     - WBS_API_URL=http://host.docker.internal:5100
