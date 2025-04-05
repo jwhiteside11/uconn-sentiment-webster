@@ -1,5 +1,6 @@
 import fetch_news
 import fetch_utils
+import fetch_earnings_calls
 from model_client import ModelClient
 from datastore_client import DatastoreClient
 from auth_client import AuthClient
@@ -50,10 +51,6 @@ class Fetcher:
         results.append({"message": f"SUCCESS {res['url']}"})
 
     return results
-  
-
-  def scrape_earnings_calls(self, ticker: str):
-    return None
 
   def score_news(self, ticker: str):
       results = []
@@ -72,6 +69,28 @@ class Fetcher:
           self.ds.createNewsStoryEntity(doc)
           results.append({"message": f"SUCCESS {doc.url} score: {doc.score} magnitude: {doc.magnitude}"})
       return results
+  
+
+  def scrape_earnings_calls(self, ticker: str):
+    past_8_q = fetch_utils.get_past_8_quarters()[2:3]
+    
+    results = []
+    for (y, q) in past_8_q:
+      res = fetch_earnings_calls.fetch_earnings_call(ticker, y, q)
+      if "error" in res:
+        print(f"call pull failed:", res['error'])
+        results.append({"message": f"ERROR {res['error']}"})
+        continue
+
+      # score using FinBERT model
+      transcript = res["result"]["transcript"]
+      score_res = self.model.score_text(transcript)
+      call = fetch_earnings_calls.EarningsCallTranscript(ticker=ticker, year=y, quarter=q, date=res["date"], paragraphs=transcript.split('\n'), score=score_res["score"], magnitude=score_res["magnitude"])
+
+      # TODO save to datastore, index in typesense
+      results.append({"message": f"SUCCESS {res['url']}"})
+
+    return results
 
   def backfillTypesenseServer(self, ticker: str):
     if ticker is None:

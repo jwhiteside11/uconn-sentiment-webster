@@ -1,5 +1,6 @@
 from fetcher import Fetcher
 from flask import Flask, jsonify, request
+import urllib.parse
 
 fetcher = Fetcher()
 fetcher.initTypesenseServer()
@@ -58,6 +59,17 @@ def indexed_tickers():
     return jsonify(res)
 
 
+# Get tickers indexed in typesense
+@app.route('/search_news/get_doc', methods=['GET'])
+def get_news_doc():
+    doc_id = urllib.parse.unquote(request.args.get("id", default=""))
+    print("ID:", doc_id)
+    if doc_id == "":
+        return jsonify({"message": "missing required query param: id"}), 400
+    res = fetcher.ts.getNewsDocument(doc_id)
+    return jsonify({"id": doc_id, **res})
+
+
 # Get all news article scores for a ticker
 @app.route('/search_news/summary', methods=['GET'])
 def summarize():
@@ -78,6 +90,20 @@ def score_news():
     
     res = fetcher.score_news(ticker)
     return jsonify({"num_attempts": len(res), "num_success": len([r for r in res if "error" not in r]), "results": res})
+
+
+# Scrape news using Selenium and requests, stores in Datastore
+@app.route('/scrape_earnings_calls', methods=['GET'])
+def scrape_earnings_calls():
+    ticker = request.args.get("ticker", default="")
+    if ticker == "":
+        return jsonify({"message": "missing required query param: ticker"}), 400
+    
+    # res = fetcher.scrape_earnings_calls(ticker)
+    # return jsonify({"num_attempts": len(res), "num_success": len([r for r in res if "error" not in r]), "results": res})
+    
+    return jsonify({"message": "endpoint not implemented"}), 400
+    
 
 
 # Backfill Typesense server with Datastore content

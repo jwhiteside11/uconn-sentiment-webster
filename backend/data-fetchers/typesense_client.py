@@ -1,5 +1,6 @@
 import typesense
 import sys
+import hashlib
 
 class NewsDocument:
     def __init__(self, ticker: str, date: str, title: str, url: str, paragraphs: list[str], score: float = 0, magnitude: float = 0, id: str = ""):
@@ -38,8 +39,13 @@ class TypesenseClient:
             ]
         })
 
+    def hashHexURL(self, url: str):
+        hash_object = hashlib.sha256()
+        hash_object.update(url.encode('utf-8'))
+        return hash_object.hexdigest()
+
     def createNewsDocument(self, news_doc: NewsDocument):
-        return self.client.collections['news'].documents.create({**news_doc.__dict__, "id": news_doc.url})
+        return self.client.collections['news'].documents.create({**news_doc.__dict__, "id": self.hashHexURL(news_doc.url)})
 
     def getIndexedURLs(self, ticker: str):
         search_parameters = {
@@ -117,6 +123,16 @@ class TypesenseClient:
                 } for hit in res["hits"]]
             }
             return condensed
+        except Exception as e:
+            return {"message": f"ERROR {e}"}
+        
+    def getNewsDocument(self, url: str):
+        try:
+            hashID = self.hashHexURL(url)
+            doc = self.client.collections['news'].documents[hashID].retrieve()
+            if "error" in doc:
+                return {"message": f"ERROR {doc['error']}"}
+            return doc
         except Exception as e:
             return {"message": f"ERROR {e}"}
 
