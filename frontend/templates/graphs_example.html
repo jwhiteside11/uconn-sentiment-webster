@@ -145,18 +145,13 @@
     </div>
 
     <div id="summary-results">
-      {% for item in summary.documents %}
+      <!-- {% for item in summary.documents %}
         <p>{{ item }}</p>
-      {% endfor %}
+      {% endfor %} -->
     </div>
 
     <script>
       const API_URL = "{{ api_url }}"
-      function decodeHTMLComponent(text) {
-        const element = document.createElement('div');
-        element.innerText = text;
-        return element.innerText;
-      }
       const wbsSummary = JSON.parse('{{ summary }}'.replaceAll("&#39;", '"'))
     </script>
     <script src="{{ url_for('static', filename='js/graph.js') }}"></script>

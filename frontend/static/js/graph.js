@@ -45,7 +45,7 @@ class ScoreDial {
 
     // Initialize path
     this.totalLength = 2 * Math.PI * svgRad;
-    this.setPath(value);
+    this.initPath(value);
 
     // this.path = document.getElementsByClassName("value-path")[0];
     const dialText = document.createElement('div')
@@ -58,10 +58,10 @@ class ScoreDial {
     dialText.appendChild(this.scoreValue)
 
     if (size === 'lg') {
-      const label = document.createElement("p");
-      label.textContent = text;
-      label.className = "bank-name"
-      dialText.appendChild(label)
+      this.label = document.createElement("p");
+      this.label.textContent = text;
+      this.label.className = "bank-name"
+      dialText.appendChild(this.label)
     } else {
       const subtextContainer = document.createElement('div');
       subtextContainer.style.width = "148px";
@@ -77,12 +77,17 @@ class ScoreDial {
     return dialArticle
   }
 
-  setValue(value) {
-    this.scoreValue.textContent = value.toFixed(this.size === 'lg' ? 3 : 2);
+  setValues(value, text) {
+    if (this.size === 'lg') {
+      this.scoreValue.textContent = value.toFixed(3);
+      this.label.textContent = text
+    } else {
+      this.scoreValue.textContent = value.toFixed(2);
+    }
     this.setPath(value)
   }
 
-  setPath(value) {
+  initPath(value) {
     // Clamp value between -1 and 1
     value = Math.max(-1, Math.min(1, value));
     // Convert -1 to 1 range to 0 to 1 for the arc
@@ -99,6 +104,18 @@ class ScoreDial {
     this.path.style.transformOrigin = "center"
   }
 
+  setPath(value) {
+    // Clamp value between -1 and 1
+    value = Math.max(-1, Math.min(1, value));
+    // Convert -1 to 1 range to 0 to 1 for the arc
+    const normalizedValue = (value + 1) / 2;
+    // Calculate the dash offset based on the score
+    const dashOffset = this.totalLength * (1 - normalizedValue);
+    // Update the path
+    this.path.style.strokeDashoffset = dashOffset
+    this.path.style.stroke = this.getColor(value);
+  }
+
   getColor(value) {
     if (value <= -0.333) return "#FF4D4D"; // Red
     if (value <= 0.333) return "#F1C54B"; // Yellow
@@ -108,9 +125,30 @@ class ScoreDial {
 
 const GRAPH_URL = `${getURL()}/search_news/summary`
 const otherSummaries = {}
-var selectedSummary = wbsSummary;
+var selectedSummary = null;
 var averages = {};
-const dial1 = new ScoreDial(0.342, "Webster Bank");
+
+const dial1 = new ScoreDial(0.0, "Example Bank");
+
+const bankNames = {
+  "FCNCA": "First Citizens BancShares, Inc.",
+  "MTB": "M&T Bank Corporation",
+  "HBAN": "Huntington Bancshares Inc",
+  "RF": "Regions Financial corporation",
+  "NYCB": "New York Community Bancorp, Inc.",
+  "ZION": "Zions Bancorporation",
+  "CMA": "Comerica Incorporated",
+  "FHN": "First Horizon Corporation",
+  "WBS": "Webster Financial Corporation",
+  "WAL": "Western Alliance Bancorporation",
+  "VLY": "Valley National Bancorp",
+  "SNV": "Synovus Financial",
+  "WTFC": "Wintrust Financial corporation",
+  "CFR": "Cullen/Frost Bankers, Inc.",
+  "BOKF": "BOK Financial Corporation",
+  "ONB": "Old National Bancorp",
+  "FNB": "F.N.B. Corporation",
+}
 
 function getCookie(name) {
   const value = `; ${document.cookie}`;
@@ -122,12 +160,22 @@ function getCookie(name) {
   return null;  // Return null if the cookie doesn't exist
 }
 
-const fetchSummary = async (query) => {
+const fetchThenUpdateSummary = (ticker) => {
   const headers = {"WBS-API-PASSKEY": getCookie("WBS-API-PASSKEY")}
-  return fetch(`${GRAPH_URL}?${query}`, {headers})
+  fetch(`${GRAPH_URL}?ticker=${ticker}`, {headers})
+  .then(res => res.json())
+  .then(json => {
+    console.log(json)
+    otherSummaries[ticker] = json
+    selectedSummary = json
+    updateSummary(ticker)
+  })
+  .catch(error => {
+      console.error('Error fetching data:', error);
+  });
 }
 
-const updateSummary = () => {
+const updateSummary = (ticker) => {
   const elems = []
   selectedSummary["documents"].forEach(hit => {
     let p2 = document.createElement('p');
@@ -140,6 +188,8 @@ const updateSummary = () => {
   res_box.replaceChildren(...elems)
 
   findAverages()
+  
+  dial1.setValues(averages["avg_total"], bankNames[ticker])
 }
 
 const findAverages = () => {
@@ -154,38 +204,31 @@ const findAverages = () => {
       mo_totals[key] = [hit["score"], 1]
     }
   });
+
   let total = 0
   let cnt = 0
   Object.keys(mo_totals).forEach(key => {
     total += mo_totals[key][0]
     cnt += mo_totals[key][1]
   })
+
   mo_totals["avg_total"] = total / cnt
-  averages = mo_totals
+  
   console.log(mo_totals)
-  dial1.setValue(mo_totals["avg_total"])
+  averages = mo_totals
 }
 
 document.addEventListener("DOMContentLoaded", () => {
   const ticker_select = document.getElementById("ticker-select")
+  fetchThenUpdateSummary(ticker_select.value)
   
   ticker_select.oninput = () => {
     const ticker = ticker_select.value;
     if (otherSummaries[ticker] !== undefined) {
       selectedSummary = otherSummaries[ticker]
-      updateSummary()
+      updateSummary(ticker)
     } else {
-      fetchSummary(`ticker=${ticker}`)
-      .then(res => res.json() )
-      .then(json => {
-        console.log(json)
-        otherSummaries[ticker] = json
-        selectedSummary = json
-        updateSummary()
-      })
-      .catch(error => {
-          console.error('Error fetching data:', error);
-      });
+      fetchThenUpdateSummary(ticker)
     }
   }
 })
