@@ -1,12 +1,7 @@
-import subprocess
 import requests
 from typing import List, Union
-import pandas as pd
-import time
 import os
 import json
-
-import fetch_utils
 
 class EarningsCallTranscript:
     def __init__(self, ticker: str, year: int, quarter: int, date: str, paragraphs: list[str], score: float = 0, magnitude: float = 0, id: str = ""):
@@ -18,6 +13,9 @@ class EarningsCallTranscript:
         self.score = score
         self.magnitude = magnitude
 
+    def get_key(self):
+      return f'call-{self.ticker}-Y{self.year}-Q{self.quarter}'
+
 APININJAS_API_KEY = os.getenv('APININJAS_API_KEY', "")
 
 def get_authenticated(url):
@@ -25,17 +23,11 @@ def get_authenticated(url):
   headers = {'X-Api-Key': APININJAS_API_KEY}
   return requests.get(url, headers=headers)
 
-'''
-Fetch a specified earning calls from API Ninjas (requires API key)
-
-Output: paragraphs from the specified earnings call
-Example usage:
-  p_res = earnings_calls("MSFT", year=2025, quarter=1)
-'''
+# Fetch a specified earning calls from API Ninjas (requires API key)
 def fetch_earnings_call(ticker: str, year: int, quarter: int) -> Union[List[str], dict]:
   res = get_authenticated(f"https://api.api-ninjas.com/v1/earningstranscript?ticker={ticker}&year={year}&quarter={quarter}")
   if res.status_code != 200:
-    return {"error": f"{res.status_code}: source.text", "ticker": ticker, "year": year, "quarter": quarter}
+    return {"error": f"{res.status_code}: {res.text}", "ticker": ticker, "year": year, "quarter": quarter}
   
   try:
     resObj = json.loads(res.text)  
@@ -45,12 +37,7 @@ def fetch_earnings_call(ticker: str, year: int, quarter: int) -> Union[List[str]
   if type(resObj) != dict:
     return {"error": "earnings call not available", "ticker": ticker, "year": year, "quarter": quarter}
  
-  return {
-    "ticker": ticker, 
-    "year": year, 
-    "quarter": quarter,
-    
-  }
+  return resObj
 
 # driver for running in production
 def run_program():

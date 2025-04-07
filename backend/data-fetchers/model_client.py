@@ -3,7 +3,7 @@ import json
 
 class ModelClient:
     def __init__(self):
-        self.model_url = 'http://host.docker.internal:5400'
+        self.model_url = 'http://model_server:5400'
     
     def score_text(self, text: str):
         try:

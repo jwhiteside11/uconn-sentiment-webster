@@ -1,44 +1,77 @@
 from google.cloud import datastore
 from typesense_client import NewsDocument, TypesenseClient
+from fetch_earnings_calls import EarningsCallTranscript
 import sys
 
 class DatastoreClient:
     def __init__(self):
         self.client = datastore.Client()
 
-    def newsStoryExists(self, url: str) -> bool:
-        query = self.client.query(kind="newsJDWpoc")
-        query.keys_only()
-        query.add_filter(filter=datastore.query.PropertyFilter('url', '=', url))
-        return query.fetch().num_results > 0
+    def entityExists(self, kind: str, id: str) -> bool:
+        query = self.client.query(kind=kind)
+        query.add_filter('__key__', '=', self.client.key(kind, id))
+        query.keys_only() 
+        res = list(query.fetch())
+        return len(res) > 0
     
-    def createNewsStoryEntity(self, news_doc: NewsDocument) -> None:
-        # if news story with same url exists, don't replicate
-        if self.newsStoryExists(news_doc.url):
-            return
-        
-        story = datastore.Entity(self.client.key("newsJDWpoc", news_doc.url), exclude_from_indexes=("paragraphs",))
-        story.update(news_doc.__dict__)
-        self.client.put(story)
+    def getEntityByID(self, kind: str, id: str) -> dict:
+        key = self.client.key(kind, id)
+        entity = self.client.get(key)
+        return {pair[0]: pair[1] for pair in entity.items()}
 
-    def getNewsDocByID(self, id: str) -> NewsDocument:
-        key = self.client.key("newsJDWpoc", id)
-        story = self.client.get(key)
-        return NewsDocument(**{pair[0]: pair[1] for pair in story.items()})
-
-    def getAllNewsDocIDs(self, ticker: str = "") -> list[str]:
-        query = self.client.query(kind="newsJDWpoc")
+    def getAllEntityIDsByTicker(self, kind: str, ticker: str = "") -> list[str]:
+        query = self.client.query(kind=kind)
         query.keys_only()
         if ticker:
             query.add_filter(filter=datastore.query.PropertyFilter('ticker', '=', ticker))
         return [entity.key.id_or_name for entity in query.fetch()]
-    
 
-    def getAllNewsDocs(self, ticker: str = "") -> NewsDocument:
-        ids = self.getAllNewsDocIDs(ticker)
-        keys = [self.client.key("newsJDWpoc", id) for id in ids]
-        stories = self.client.get_multi(keys)
-        return [NewsDocument(**{pair[0]: pair[1] for pair in story.items()}) for story in stories]
+    def getAllEntitiesByTicker(self, kind: str, ticker: str = "") -> list[dict]:
+        ids = self.getAllEntityIDsByTicker(kind, ticker)
+        keys = [self.client.key(kind, id) for id in ids]
+        entities = self.client.get_multi(keys)
+        return [{pair[0]: pair[1] for pair in e.items()} for e in entities]
+    
+    def createEntityFromObject(self, kind: str, id:str, obj: object) -> None:
+        # if entity with same id exists, don't replicate
+        if self.entityExists(kind, id):
+            return
+        
+        entity = datastore.Entity(self.client.key(kind, id), exclude_from_indexes=("paragraphs",))
+        entity.update(obj.__dict__)
+        self.client.put(entity)
+
+    def newsStoryExists(self, url: str) -> bool:
+        return self.entityExists("newsJDWpoc", url)
+    
+    def createNewsStoryEntity(self, news_doc: NewsDocument) -> None:
+        return self.createEntityFromObject("newsJDWpoc", news_doc.url, news_doc)
+
+    def getNewsDocByID(self, id: str) -> NewsDocument:
+        return NewsDocument(**self.getEntityByID("newsJDWpoc", id))
+
+    def getAllNewsDocIDs(self, ticker: str = "") -> list[str]:
+        return self.getAllEntityIDsByTicker("newsJDWpoc", ticker)
+
+    def getAllNewsDocs(self, ticker: str = "") -> list[NewsDocument]:
+        stories = self.getAllEntitiesByTicker("newsJDWpoc", ticker)
+        return [NewsDocument(**story) for story in stories]
+
+    def earningsCallExists(self, id: str) -> bool:
+        return self.entityExists("callsJDWpoc", id)
+    
+    def createEarningsCallEntity(self, call: EarningsCallTranscript) -> None:
+        return self.createEntityFromObject("callsJDWpoc", call.get_key(), call)
+
+    def getEarningsCallByID(self, id: str) -> EarningsCallTranscript:
+        return EarningsCallTranscript(**self.getEntityByID("callsJDWpoc", id))
+
+    def getAllEarningsCallIDs(self, ticker: str = "") -> list[str]:
+        return self.getAllEntityIDsByTicker("callsJDWpoc", ticker)
+
+    def getAllEarningsCalls(self, ticker: str = "") -> list[EarningsCallTranscript]:
+        calls = self.getAllEntitiesByTicker("callsJDWpoc", ticker)
+        return [EarningsCallTranscript(**call) for call in calls]
 
 
 def run_program():

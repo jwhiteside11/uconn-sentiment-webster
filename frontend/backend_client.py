@@ -3,7 +3,7 @@ import os
 
 class BackendClient:
   def __init__(self):
-    API_URL: str = os.getenv("WBS_API_URL", "http://host.docker.internal:5100")
+    API_URL: str = os.getenv("WBS_API_URL", "http://reverse_proxy:5100")
     self.PUBLIC_API_URL: str = f'{API_URL}/api'
     self.PUBLIC_AUTH_URL: str = f'{API_URL}/auth'
 

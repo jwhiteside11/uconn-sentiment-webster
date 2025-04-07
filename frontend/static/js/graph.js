@@ -1,44 +1,14 @@
-const GRAPH_URL = `${API_URL.replace("host.docker.internal", "localhost")}/search_news/summary`
-
-function getCookie(name) {
-  const value = `; ${document.cookie}`;
-  const parts = value.split(`; ${name}=`);
-  
-  if (parts.length === 2) {
-      return parts.pop().split(';').shift();  // Extracts and returns the cookie value
+function getURL() {
+  // Split the string at "://"
+  const parts = API_URL.split("://");
+  // Further split the second part at ":"
+  const [containerName, port] = parts[1].split(":");
+  const ipv4Pattern = /^\d{1,3}(\.\d{1,3}){3}$/;
+  if (ipv4Pattern.test(containerName)) {
+    return API_URL
   }
-  return null;  // Return null if the cookie doesn't exist
+  return API_URL.replace(containerName, "localhost")
 }
-
-const updateSummary = (query) => {
-  const headers = {"WBS-API-PASSKEY": getCookie("WBS-API-PASSKEY")}
-  fetch(`${GRAPH_URL}?${query}`, {headers})
-  .then(res => res.json() )
-  .then(json => {
-    console.log(json)
-    const elems = []
-    json["documents"].forEach(hit => {
-      let p2 = document.createElement('p');
-      // p2.textContent = `Score: ${hit["score"].toFixed(2)} Magnitude: ${hit["magnitude"].toFixed(2)}`;  // Set the content of the <p> tag
-      p2.textContent = `${JSON.stringify(hit)}`
-      elems.push(p2);
-    })
-    const res_box = document.getElementById("summary-results")
-    res_box.replaceChildren(...elems)
-  })
-  .catch(error => {
-      console.error('Error fetching data:', error);
-  });
-}
-
-document.addEventListener("DOMContentLoaded", () => {
-  const ticker_select = document.getElementById("ticker-select")
-  
-  ticker_select.oninput = () => {
-    updateSummary(`ticker=${ticker_select.value}`)
-  }
-})
-
 
 class ScoreDial {
   constructor(value, text, size = 'lg') {
@@ -46,6 +16,7 @@ class ScoreDial {
   }
 
   createDial(value, text, size) {
+    this.size = size
     const container = document.getElementById(`${size}-dial-container`);
     const dialArticle = document.createElement("article");
     dialArticle.className = `dial ${size}`;
@@ -81,10 +52,10 @@ class ScoreDial {
     dialText.className = "dial-text"
     dialArticle.appendChild(dialText)
 
-    const scoreValue = document.createElement("p");
-    scoreValue.textContent = value.toFixed(size === 'lg' ? 3 : 2);
-    scoreValue.className = "score-value"
-    dialText.appendChild(scoreValue)
+    this.scoreValue = document.createElement("p");
+    this.scoreValue.textContent = value.toFixed(size === 'lg' ? 3 : 2);
+    this.scoreValue.className = "score-value"
+    dialText.appendChild(this.scoreValue)
 
     if (size === 'lg') {
       const label = document.createElement("p");
@@ -104,6 +75,11 @@ class ScoreDial {
     }
 
     return dialArticle
+  }
+
+  setValue(value) {
+    this.scoreValue.textContent = value.toFixed(this.size === 'lg' ? 3 : 2);
+    this.setPath(value)
   }
 
   setPath(value) {
@@ -129,3 +105,87 @@ class ScoreDial {
     return "#4CAF50"; // Green
   }
 }
+
+const GRAPH_URL = `${getURL()}/search_news/summary`
+const otherSummaries = {}
+var selectedSummary = wbsSummary;
+var averages = {};
+const dial1 = new ScoreDial(0.342, "Webster Bank");
+
+function getCookie(name) {
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  
+  if (parts.length === 2) {
+      return parts.pop().split(';').shift();  // Extracts and returns the cookie value
+  }
+  return null;  // Return null if the cookie doesn't exist
+}
+
+const fetchSummary = async (query) => {
+  const headers = {"WBS-API-PASSKEY": getCookie("WBS-API-PASSKEY")}
+  return fetch(`${GRAPH_URL}?${query}`, {headers})
+}
+
+const updateSummary = () => {
+  const elems = []
+  selectedSummary["documents"].forEach(hit => {
+    let p2 = document.createElement('p');
+    // p2.textContent = `Score: ${hit["score"].toFixed(2)} Magnitude: ${hit["magnitude"].toFixed(2)}`;  // Set the content of the <p> tag
+    p2.textContent = `${JSON.stringify(hit)}`
+    elems.push(p2);
+  });
+  
+  const res_box = document.getElementById("summary-results")
+  res_box.replaceChildren(...elems)
+
+  findAverages()
+}
+
+const findAverages = () => {
+  const mo_totals = {};
+  selectedSummary["documents"].forEach(hit => {
+    const [dayow, mo_day, year, time] = hit["date"].split(",")
+    key = `${mo_day.trim().substring(0, 3)} ${year.trim().substring(2)}`
+    if (mo_totals[key]) {
+      mo_totals[key][0] += hit["score"]
+      mo_totals[key][1]++
+    } else {
+      mo_totals[key] = [hit["score"], 1]
+    }
+  });
+  let total = 0
+  let cnt = 0
+  Object.keys(mo_totals).forEach(key => {
+    total += mo_totals[key][0]
+    cnt += mo_totals[key][1]
+  })
+  mo_totals["avg_total"] = total / cnt
+  averages = mo_totals
+  console.log(mo_totals)
+  dial1.setValue(mo_totals["avg_total"])
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  const ticker_select = document.getElementById("ticker-select")
+  
+  ticker_select.oninput = () => {
+    const ticker = ticker_select.value;
+    if (otherSummaries[ticker] !== undefined) {
+      selectedSummary = otherSummaries[ticker]
+      updateSummary()
+    } else {
+      fetchSummary(`ticker=${ticker}`)
+      .then(res => res.json() )
+      .then(json => {
+        console.log(json)
+        otherSummaries[ticker] = json
+        selectedSummary = json
+        updateSummary()
+      })
+      .catch(error => {
+          console.error('Error fetching data:', error);
+      });
+    }
+  }
+})

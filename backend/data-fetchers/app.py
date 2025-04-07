@@ -3,7 +3,6 @@ from flask import Flask, jsonify, request
 import urllib.parse
 
 fetcher = Fetcher()
-fetcher.initTypesenseServer()
 
 app = Flask(__name__)
 
@@ -27,6 +26,7 @@ def before_request():
 def hello_world():
     return jsonify(message="Hello, World!")
 
+### NEWS ARTICLES ###
 
 # Scrape news using Selenium and requests, stores in Datastore
 @app.route('/scrape_news', methods=['GET'])
@@ -36,7 +36,7 @@ def scrape_news():
         return jsonify({"message": "missing required query param: ticker"}), 400
     
     res = fetcher.scrape_news(ticker)
-    return jsonify({"num_attempts": len(res), "num_success": len([r for r in res if "error" not in r]), "results": res})
+    return jsonify({"num_attempts": len(res), "num_success": len([r for r in res if r["message"][:7] == "SUCCESS"]), "results": res})
 
 
 # Full text search on news articles using ticker and search term
@@ -89,8 +89,10 @@ def score_news():
         return jsonify({"message": "missing required query param: ticker"}), 400
     
     res = fetcher.score_news(ticker)
-    return jsonify({"num_attempts": len(res), "num_success": len([r for r in res if "error" not in r]), "results": res})
+    return jsonify({"num_attempts": len(res), "num_success": len([r for r in res if r["message"][:7] == "SUCCESS"]), "results": res})
 
+
+### EARNINGS CALLS ###
 
 # Scrape news using Selenium and requests, stores in Datastore
 @app.route('/scrape_earnings_calls', methods=['GET'])
@@ -99,23 +101,33 @@ def scrape_earnings_calls():
     if ticker == "":
         return jsonify({"message": "missing required query param: ticker"}), 400
     
-    # res = fetcher.scrape_earnings_calls(ticker)
-    # return jsonify({"num_attempts": len(res), "num_success": len([r for r in res if "error" not in r]), "results": res})
+    res = fetcher.scrape_earnings_calls(ticker)
+    return jsonify({"num_attempts": len(res), "num_success": len([r for r in res if r["message"][:7] == "SUCCESS"]), "results": res})
     
-    return jsonify({"message": "endpoint not implemented"}), 400
+
+# Full text search on earnings calls using ticker and search term
+@app.route('/search_earnings_calls', methods=['GET'])
+def search_earnings_calls():
+    ticker = request.args.get("ticker", default="")
+    if ticker == "":
+        return jsonify({"message": "missing required query param: ticker"}), 400
     
+    search_term = request.args.get("search_term", default="")
+
+    res = fetcher.ts.searchEarningsCalls(ticker, search_term)
+    return jsonify(res)
 
 
 # Backfill Typesense server with Datastore content
 @app.route('/backfill_typesense', methods=['GET'])
-def backfill():
+def backfill_news():
     ticker = request.args.get("ticker")
     
-    res = fetcher.backfillTypesenseServer(ticker)
+    res = fetcher.backfillTypesenseServerNews(ticker)
     return jsonify(res)
 
 
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=True, host="0.0.0.0", port=5300)

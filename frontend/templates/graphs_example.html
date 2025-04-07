@@ -20,12 +20,17 @@
         margin: 24px 0;
         display: flex;
         justify-content: space-between;
+        align-items: center;
       }
 
       header h2 {
         font-size: 18px;
         font-weight: 500;
         margin: 8px 0;
+      }
+
+      .ticker-select-container {
+        width: 700px;
       }
 
       #sm-dial-container, #lg-dial-container {
@@ -116,6 +121,17 @@
       </div>
       <p onclick='document.cookie = "WBS-API-PASSKEY=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;"; window.location.replace("/login");' style="cursor: pointer;">Logout</p>
     </header>
+
+    <div class="ticker-select-container">
+      <select name="ticker" id="ticker-select">
+        <option value="WBS">WBS</option>
+        {% for item in ticker_list %}
+          {% if item.value != "WBS" %}
+            <option value="{{item.value}}">{{ item.value }}</option>
+          {% endif %}
+        {% endfor %}
+      </select>
+    </div>
     
     <div id="lg-dial-container"></div>
     <div id="sm-dial-container"></div>
@@ -128,16 +144,6 @@
       <canvas id="myChart2"></canvas>
     </div>
 
-    <p>Ticker:</p>
-    <select name="ticker" id="ticker-select">
-      <option value="WBS">WBS</option>
-      {% for item in ticker_list %}
-        {% if item.value != "WBS" %}
-          <option value="{{item.value}}">{{ item.value }}</option>
-        {% endif %}
-      {% endfor %}
-    </select>
-
     <div id="summary-results">
       {% for item in summary.documents %}
         <p>{{ item }}</p>
@@ -146,12 +152,17 @@
 
     <script>
       const API_URL = "{{ api_url }}"
+      function decodeHTMLComponent(text) {
+        const element = document.createElement('div');
+        element.innerText = text;
+        return element.innerText;
+      }
+      const wbsSummary = JSON.parse('{{ summary }}'.replaceAll("&#39;", '"'))
     </script>
     <script src="{{ url_for('static', filename='js/graph.js') }}"></script>
 
     <script>
       // Initialize the dial
-      const dial1 = new ScoreDial(0.342, "Webster Bank");
       const dial2 = new ScoreDial(0.151, "Customer Service", 'sm');
       const dial3 = new ScoreDial(0.751, "Financial Performance", 'sm');
       const dial4 = new ScoreDial(-0.151, "Technology", 'sm');

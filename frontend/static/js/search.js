@@ -1,4 +1,17 @@
-const SEARCH_URL = `${API_URL.replace("host.docker.internal", "localhost")}/search_news`
+function getURL() {
+  // Split the string at "://"
+  const parts = API_URL.split("://");
+  // Further split the second part at ":"
+  const [containerName, port] = parts[1].split(":");
+  const ipv4Pattern = /^\d{1,3}(\.\d{1,3}){3}$/;
+  if (ipv4Pattern.test(containerName)) {
+    return API_URL
+  }
+  return API_URL.replace(containerName, "localhost")
+}
+
+const SEARCH_URL = `${getURL()}/search_news`
+
 function getCookie(name) {
   const value = `; ${document.cookie}`;
   const parts = value.split(`; ${name}=`);

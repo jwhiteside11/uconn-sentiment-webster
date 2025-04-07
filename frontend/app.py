@@ -38,8 +38,7 @@ def login():
     if username and password:
         loginRes = api_client.login(username, password).json()
         if "passkey" in loginRes:
-            response = make_response(redirect(url_for("search_news")))
-            # Set the cookie with name 'my_cookie' and value 'cookie_value'
+            response = make_response(redirect(url_for("graph_news")))
             response.set_cookie('WBS-API-PASSKEY', loginRes["passkey"], max_age=3600, samesite=None)
             return response
 
@@ -50,17 +49,27 @@ def login():
 @passkey_required
 def search_news():
     passkey = request.cookies.get('WBS-API-PASSKEY')
-    res = api_client.get_tickers(passkey).json()
+    try:
+        res = api_client.get_tickers(passkey).json()
+    except Exception as e:
+        print(e)
+        return make_response(redirect(url_for("login")))
+    
     return render_template("search_news.html", ticker_list=res["tickers"], api_url=api_client.PUBLIC_API_URL)
 
 
 # Data visualization graphs - TODO
 @app.route('/graph_news', methods=['GET'])
-# @passkey_required
-def graph():
+@passkey_required
+def graph_news():
     passkey = request.cookies.get('WBS-API-PASSKEY')
-    ticker_res = api_client.get_tickers(passkey).json()
-    summary_res = api_client.get_summary("WBS", passkey).json()
+    try:
+        ticker_res = api_client.get_tickers(passkey).json()
+        summary_res = api_client.get_summary("WBS", passkey).json()
+    except Exception as e:
+        print(e)
+        return make_response(redirect(url_for("login")))
+
     return render_template("graphs_example.html", ticker_list=ticker_res["tickers"], summary=summary_res, api_url=api_client.PUBLIC_API_URL)
 
 

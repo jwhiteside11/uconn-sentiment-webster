@@ -12,6 +12,8 @@ class Fetcher:
     self.ts = TypesenseClient()
     self.model = ModelClient()
     self.auth = AuthClient()
+    
+    self.initTypesenseServer()
 
   # Scrape Yahoo Finance news stories from the past 2 quarters
   def scrape_news(self, ticker: str):
@@ -38,9 +40,11 @@ class Fetcher:
         print(f"scraped: {url}")
         # score using FinBERT model
         score_res = self.model.score_text('\n'.join(res["paragraphs"]))
+        
         # save document to datastore
         news_doc = NewsDocument(ticker=ticker, score=score_res["score"], magnitude=score_res["magnitude"], **res)
         self.ds.createNewsStoryEntity(news_doc)
+        
         # index into typesense
         try:
           self.ts.createNewsDocument(news_doc)
@@ -72,30 +76,38 @@ class Fetcher:
   
 
   def scrape_earnings_calls(self, ticker: str):
-    past_8_q = fetch_utils.get_past_8_quarters()[2:3]
+    past_8_q = fetch_utils.get_past_8_quarters()[2:]
     
     results = []
     for (y, q) in past_8_q:
       res = fetch_earnings_calls.fetch_earnings_call(ticker, y, q)
       if "error" in res:
-        print(f"call pull failed:", res['error'])
+        print(f"earnings call pull failed:", res['error'])
         results.append({"message": f"ERROR {res['error']}"})
         continue
 
       # score using FinBERT model
-      transcript = res["result"]["transcript"]
-      score_res = self.model.score_text(transcript)
-      call = fetch_earnings_calls.EarningsCallTranscript(ticker=ticker, year=y, quarter=q, date=res["date"], paragraphs=transcript.split('\n'), score=score_res["score"], magnitude=score_res["magnitude"])
+      score_res = self.model.score_text(res["transcript"])
 
-      # TODO save to datastore, index in typesense
-      results.append({"message": f"SUCCESS {res['url']}"})
+      # add to datastore
+      call = fetch_earnings_calls.EarningsCallTranscript(ticker=ticker, year=y, quarter=q, date=res["date"], paragraphs=res["transcript"].split('\n'), score=score_res["score"], magnitude=score_res["magnitude"])
+      self.ds.createEarningsCallEntity(call)
+
+      # index into typesense
+      try:
+        self.ts.createEarningsCallDocument(call)
+        print("added: ", call.get_key())
+      except Exception as e:
+        print("failed: ", call.get_key(), e)
+
+      results.append({"message": f"SUCCESS {call.get_key()}"})
 
     return results
 
-  def backfillTypesenseServer(self, ticker: str):
+  def backfillTypesenseServerNews(self, ticker: str):
     if ticker is None:
       print("resetting Typesense server")
-      self.ts.deleteNewsColletion()
+      self.ts.deleteNewsCollection()
       self.ts.createNewsCollection()
     
     url_res = self.ts.getIndexedURLs(ticker)
@@ -116,10 +128,17 @@ class Fetcher:
         fails += 1
 
     return {"num_found": len(ids), "num_indexed": len(ids) - fails}
+
+  def backfillTypesenseServerEarningsCalls(self, ticker: str):
+    raise Exception("not yet implemented")
     
   def initTypesenseServer(self):
     try:
       self.ts.createNewsCollection()
     except:
       pass
-    return {"message": "Typesense: news collection created"}
+
+    try:
+      self.ts.createEarningsCallCollection()
+    except:
+      pass
