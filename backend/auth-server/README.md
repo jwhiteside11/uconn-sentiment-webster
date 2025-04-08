@@ -39,3 +39,11 @@ To start the server locally (for testing):
    curl -X POST http://localhost:5200/validate -H "Content-Type: application/json" -d '{"passkey": "<JWT_TOKEN>"}'
    ```
 
+## Expected output
+```bash
+{
+  "valid": true,
+  "username": "testuser"
+}
+```
+
