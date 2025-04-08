@@ -27,3 +27,15 @@ To start the server locally (for testing):
 1. Install dependencies:
    ```bash
    pip install flask flask-cors bcrypt pyjwt
+   ```
+2. ```bash
+   docker compose up
+   ```
+3. In another terminal window:
+   ```bash
+   curl -X POST http://localhost:5200/authenticate -H "Content-Type: application/json" -d '{"username": "testuser", "password": "password123"}'
+   ```
+4. ```bash
+   curl -X POST http://localhost:5200/validate -H "Content-Type: application/json" -d '{"passkey": "<JWT_TOKEN>"}'
+   ```
+
