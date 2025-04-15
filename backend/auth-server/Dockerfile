@@ -2,7 +2,7 @@
 FROM python:3.9
 
 # Set working directory inside container
-WORKDIR /app
+WORKDIR /auth-server
 
 # Copy requirements first (for efficient caching)
 COPY requirements.txt .
