@@ -123,12 +123,17 @@ class TypesenseClient:
 
     def searchNews(self, ticker: str, search_term: str):
         search_parameters = {
-            'q'         : "*" if search_term is None else search_term,
+            'q'         : search_term,
             'query_by'  : 'paragraphs',
             'highlight_fields': 'paragraphs',
             'filter_by' : f'ticker:={ticker}',
             'include_fields': 'url, title, score, magnitude'
         }
+        if search_term is None:
+            search_parameters['q'] = '*'
+        else:
+            search_parameters['num_typos'] = 0
+
         try:
             res = self.client.collections['news'].documents.search(search_parameters)
             condensed = {
@@ -165,12 +170,17 @@ class TypesenseClient:
 
     def searchEarningsCalls(self, ticker: str, search_term: str):
         search_parameters = {
-            'q'         : "*" if search_term is None else search_term,
+            'q'         : search_term,
             'query_by'  : 'paragraphs',
             'highlight_fields': 'paragraphs',
             'filter_by' : f'ticker:={ticker}',
             'include_fields': 'ticker, quarter, year, score, magnitude'
         }
+        if search_term is None:
+            search_parameters['q'] = '*'
+        else:
+            search_parameters['num_typos'] = 0
+
         try:
             res = self.client.collections['calls'].documents.search(search_parameters)
             condensed = {
