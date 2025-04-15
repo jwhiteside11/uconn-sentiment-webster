@@ -53,7 +53,11 @@ class ScoreDial {
     dialArticle.appendChild(dialText)
 
     this.scoreValue = document.createElement("p");
-    this.scoreValue.textContent = value.toFixed(size === 'lg' ? 3 : 2);
+    if (typeof(value) === "string") {
+      this.scoreValue.textContent = value;
+    } else {
+      this.scoreValue.textContent = value.toFixed(size === 'lg' ? 3 : 2);
+    }
     this.scoreValue.className = "score-value"
     dialText.appendChild(this.scoreValue)
 
@@ -128,7 +132,7 @@ const otherSummaries = {}
 var selectedSummary = null;
 var averages = {};
 
-const dial1 = new ScoreDial(0.0, "Example Bank");
+const dial1 = new ScoreDial("", "");
 
 const bankNames = {
   "FCNCA": "First Citizens BancShares, Inc.",
@@ -218,9 +222,81 @@ const findAverages = () => {
   averages = mo_totals
 }
 
+const getMonths = () => {
+  let months = Array.from(Object.keys(averages)).filter(v => v !== 'avg_total')
+  months.sort((a, b) => {
+    const moA = a.substring(0, 3)
+    const moB = b.substring(0, 3)
+    const yA = a.substring(4, 6)
+    const yB = b.substring(4, 6)
+    if (yA < yB) {
+      return -1; // a comes before b
+    }
+    if (yA > yB) {
+      return 1; // a comes after b
+    }
+    if (moA < moB) {
+      return -1; // a comes before b
+    }
+    if (moA > moB) {
+      return 1; // a comes after b
+    }
+    return 0; // a and b are equal
+  });
+  console.log("MONTHS", months)
+  return months
+}
+
+const makeChart = (id) => {
+  const months = getMonths();
+
+  var ctx = document.getElementById(id).getContext('2d');
+  var lineChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: ["Aug 24", "Sep 24", "Oct 24", "Nov 24", "Dec 24", "Jan 25"],
+      datasets: [{
+        label: 'Sales',
+        data: [30, 45, 60, 35, 50, 40],
+        borderColor: '#CEE9C3',
+        borderWidth: 4,
+        fill: false
+      }, {
+        label: 'Not Sales',
+        data: [20, 15, 30, 35, 80, 35],
+        borderColor: '#F8D49A',
+        borderWidth: 4,
+        fill: false
+      }]
+    },
+    options: {
+      plugins: {
+          legend: {
+              position: 'right', // Set legend position to the right
+              labels: {
+                  boxWidth: 20,    // Size of the box in the legend
+                  padding: 15      // Padding between the legend items
+              }
+          }
+      },
+      layout: {
+          padding: {
+              right: 50  // Add some space on the right side to avoid clipping
+          }
+      },
+      scales: {
+        y: {
+          beginAtZero: true
+        }
+      }
+    }
+  });
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   const ticker_select = document.getElementById("ticker-select")
   fetchThenUpdateSummary(ticker_select.value)
+  setTimeout(() => makeChart('myChart'), 200)
   
   ticker_select.oninput = () => {
     const ticker = ticker_select.value;

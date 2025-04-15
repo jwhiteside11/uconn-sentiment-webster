@@ -165,53 +165,8 @@
       // Example of how to update the value
       // You can call this function with any value between -1 and 1
       // dial.setValue(-0.5);
-
-      const makeChart = (id) => {
-        var ctx = document.getElementById(id).getContext('2d');
-        var lineChart = new Chart(ctx, {
-          type: 'line',
-          data: {
-            labels: ['January', 'February', 'March', 'April', 'May', 'June'],
-            datasets: [{
-              label: 'Sales',
-              data: [30, 45, 60, 35, 50, 40],
-              borderColor: '#CEE9C3',
-              borderWidth: 4,
-              fill: false
-            }, {
-              label: 'Not Sales',
-              data: [20, 15, 30, 35, 80, 35],
-              borderColor: '#F8D49A',
-              borderWidth: 4,
-              fill: false
-            }]
-          },
-          options: {
-            plugins: {
-                legend: {
-                    position: 'right', // Set legend position to the right
-                    labels: {
-                        boxWidth: 20,    // Size of the box in the legend
-                        padding: 15      // Padding between the legend items
-                    }
-                }
-            },
-            layout: {
-                padding: {
-                    right: 50  // Add some space on the right side to avoid clipping
-                }
-            },
-            scales: {
-              y: {
-                beginAtZero: true
-              }
-            }
-          }
-        });
-      }
-
-      makeChart('myChart')
-      makeChart('myChart2')
+      
+      // makeChart('myChart2')
     </script>
   </body>
 </html>
