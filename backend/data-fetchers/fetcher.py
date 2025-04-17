@@ -53,7 +53,7 @@ class Fetcher:
 
         # Loop through paragraphs and calculate scores 
         for paragraph in res["paragraphs"]:
-          if not paragraph:
+          if len(paragraph) < 10: # disregard inputs less than 10 characters - irrelevant to sentiment
             continue
 
           # Generate keywords for the paragraph
