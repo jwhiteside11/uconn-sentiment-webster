@@ -204,10 +204,10 @@ const findAverages = () => {
     const [dayow, mo_day, year, time] = hit["date"].split(",")
     key = `${mo_day.trim().substring(0, 3)} ${year.trim().substring(2)}`
     if (mo_totals[key]) {
-      mo_totals[key][0] += hit["score"]
+      mo_totals[key][0] += hit["weighted_score"]
       mo_totals[key][1] += hit["magnitude"]
     } else {
-      mo_totals[key] = [hit["score"], hit["magnitude"]]
+      mo_totals[key] = [hit["weighted_score"], hit["magnitude"]]
     }
   });
 
