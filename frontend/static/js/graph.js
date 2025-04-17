@@ -199,9 +199,10 @@ const fetchThenUpdateSummary = (ticker) => {
 const updateSummary = (ticker) => {
   const elems = []
   selectedSummary["documents"].forEach(hit => {
-    let p2 = document.createElement('p');
+    let p2 = document.createElement('pre');
     // p2.textContent = `Score: ${hit["score"].toFixed(2)} Magnitude: ${hit["magnitude"].toFixed(2)}`;  // Set the content of the <p> tag
-    p2.textContent = `${JSON.stringify(hit)}`
+    hit["keywords"] = typeof(hit["keywords"]) === "string" ? JSON.parse(hit["keywords"]) : hit["keywords"]
+    p2.textContent = `${JSON.stringify(hit, null, 2)}`
     elems.push(p2);
   });
   
@@ -211,10 +212,10 @@ const updateSummary = (ticker) => {
   findAverages()
   
   dial1.setValues(averages["avg_total"], bankNames[ticker])
-  // dial2.setValues(category_averages[dial2.label.textContent]["avg_total"])
+  dial2.setValues(category_averages[dial2.label.textContent]["avg_total"])
   dial3.setValues(category_averages[dial3.label.textContent]["avg_total"])
-  // dial4.setValues(category_averages[dial4.label.textContent]["avg_total"])
-  // dial5.setValues(category_averages[dial5.label.textContent]["avg_total"])
+  dial4.setValues(category_averages[dial4.label.textContent]["avg_total"])
+  dial5.setValues(category_averages[dial5.label.textContent]["avg_total"])
 }
 
 const findAverages = () => {
@@ -231,8 +232,7 @@ const findAverages = () => {
     } else {
       mo_totals[key] = [hit["weighted_score"], hit["magnitude"]]
     }
-
-    const keywords = JSON.parse(hit["keywords"])
+    const keywords = typeof(hit["keywords"]) === "string" ? JSON.parse(hit["keywords"]) : hit["keywords"]
     for (let cat in keywords) {
       category_averages[cat]["weighted_score"] += keywords[cat]["weighted_score"]
       category_averages[cat]["magnitude"] += keywords[cat]["magnitude"]
