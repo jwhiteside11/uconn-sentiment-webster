@@ -164,6 +164,8 @@ function getCookie(name) {
   return null;  // Return null if the cookie doesn't exist
 }
 
+// Dials
+
 const fetchThenUpdateSummary = (ticker) => {
   const headers = {"WBS-API-PASSKEY": getCookie("WBS-API-PASSKEY")}
   fetch(`${GRAPH_URL}?ticker=${ticker}`, {headers})
@@ -203,9 +205,9 @@ const findAverages = () => {
     key = `${mo_day.trim().substring(0, 3)} ${year.trim().substring(2)}`
     if (mo_totals[key]) {
       mo_totals[key][0] += hit["score"]
-      mo_totals[key][1]++
+      mo_totals[key][1] += hit["magnitude"]
     } else {
-      mo_totals[key] = [hit["score"], 1]
+      mo_totals[key] = [hit["score"], hit["magnitude"]]
     }
   });
 
@@ -221,6 +223,8 @@ const findAverages = () => {
   console.log(mo_totals)
   averages = mo_totals
 }
+
+// Line graph
 
 const getMonths = () => {
   let months = Array.from(Object.keys(averages)).filter(v => v !== 'avg_total')
