@@ -1,17 +1,21 @@
 import typesense
 import sys
+import json
 import hashlib
 from fetch_earnings_calls import EarningsCallTranscript
 
-class NewsDocument:
-    def __init__(self, ticker: str, date: str, title: str, url: str, paragraphs: list[str], score: float = 0, magnitude: float = 0, id: str = ""):
+class CategoryNewsDocument:
+    def __init__(self, ticker: str, date: str, title: str, url: str, paragraphs: list[str], score: float = 0, weighted_score: float = 0, magnitude: float = 0, keywords: dict = {}, paragraph_kws: list[dict] = [], id: str = ""):
         self.ticker = ticker
         self.date = date
         self.title = title
         self.url = url
         self.paragraphs = paragraphs
         self.score = score
+        self.weighted_score = weighted_score
         self.magnitude = magnitude
+        self.keywords = keywords
+        self.paragraph_kws = paragraph_kws
 
 
 class TypesenseClient:
@@ -38,7 +42,10 @@ class TypesenseClient:
                 {"name": "url", "type": "string" },
                 {"name": "paragraphs", "type": "string[]" },
                 {"name": "score", "type": "float" },
+                {"name": "weighted_score", "type": "float" },
                 {"name": "magnitude", "type": "float" },
+                {"name": "keywords", "type": "string" },
+                {"name": "paragraph_kws", "type": "string" },
             ]
         })
 
@@ -63,8 +70,8 @@ class TypesenseClient:
         hash_object.update(url.encode('utf-8'))
         return hash_object.hexdigest()
     
-    def createNewsDocument(self, news_doc: NewsDocument):
-        return self.client.collections['news'].documents.create({**news_doc.__dict__, "id": self.hashHexURL(news_doc.url)})
+    def createNewsDocument(self, news_doc: CategoryNewsDocument):
+        return self.client.collections['news'].documents.create({**news_doc.__dict__, "id": self.hashHexURL(news_doc.url), "keywords": json.dumps(news_doc.keywords), "paragraph_kws": json.dumps(news_doc.paragraph_kws)})
 
     def getIndexedURLs(self, ticker: str):
         search_parameters = {
@@ -107,7 +114,7 @@ class TypesenseClient:
             'q'         : "*",
             'query_by'  : 'title',
             'filter_by' : f'ticker:={ticker}',
-            'include_fields': 'date, url, score, magnitude',
+            'include_fields': 'date, url, score, weighted_score, magnitude, keywords',
             'page': 1,
             'per_page': 50
         }
@@ -127,9 +134,9 @@ class TypesenseClient:
             'query_by'  : 'paragraphs',
             'highlight_fields': 'paragraphs',
             'filter_by' : f'ticker:={ticker}',
-            'include_fields': 'url, title, score, magnitude'
+            'include_fields': 'url, title, score, weighted_score, magnitude'
         }
-        if search_term is None:
+        if search_term == "":
             search_parameters['q'] = '*'
         else:
             search_parameters['num_typos'] = 0
@@ -142,6 +149,7 @@ class TypesenseClient:
                     "title": hit["document"]["title"], 
                     "url": hit["document"]["url"], 
                     "score": hit["document"]["score"],
+                    "weighted_score": hit["document"]["weighted_score"],
                     "magnitude": hit["document"]["magnitude"],
                     "highlights": [] if "paragraphs" not in hit["highlight"] else [p["snippet"] for p in hit["highlight"]["paragraphs"] if len(p["matched_tokens"]) > 0]
                 } for hit in res["hits"]]

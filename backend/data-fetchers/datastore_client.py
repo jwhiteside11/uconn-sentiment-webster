@@ -1,5 +1,5 @@
 from google.cloud import datastore
-from typesense_client import NewsDocument, TypesenseClient
+from typesense_client import CategoryNewsDocument, TypesenseClient
 from fetch_earnings_calls import EarningsCallTranscript
 import sys
 
@@ -34,28 +34,28 @@ class DatastoreClient:
     
     def createEntityFromObject(self, kind: str, id:str, obj: object) -> None:
         # if entity with same id exists, don't replicate
-        if self.entityExists(kind, id):
-            return
+        # if self.entityExists(kind, id):
+        #     return
         
-        entity = datastore.Entity(self.client.key(kind, id), exclude_from_indexes=("paragraphs",))
+        entity = datastore.Entity(self.client.key(kind, id), exclude_from_indexes=("paragraphs", "keywords", "paragraph_kws"))
         entity.update(obj.__dict__)
         self.client.put(entity)
 
     def newsStoryExists(self, url: str) -> bool:
         return self.entityExists("newsJDWpoc", url)
     
-    def createNewsStoryEntity(self, news_doc: NewsDocument) -> None:
+    def createNewsStoryEntity(self, news_doc: CategoryNewsDocument) -> None:
         return self.createEntityFromObject("newsJDWpoc", news_doc.url, news_doc)
 
-    def getNewsDocByID(self, id: str) -> NewsDocument:
-        return NewsDocument(**self.getEntityByID("newsJDWpoc", id))
+    def getNewsDocByID(self, id: str) -> CategoryNewsDocument:
+        return CategoryNewsDocument(**self.getEntityByID("newsJDWpoc", id))
 
     def getAllNewsDocIDs(self, ticker: str = "") -> list[str]:
         return self.getAllEntityIDsByTicker("newsJDWpoc", ticker)
 
-    def getAllNewsDocs(self, ticker: str = "") -> list[NewsDocument]:
+    def getAllNewsDocs(self, ticker: str = "") -> list[CategoryNewsDocument]:
         stories = self.getAllEntitiesByTicker("newsJDWpoc", ticker)
-        return [NewsDocument(**story) for story in stories]
+        return [CategoryNewsDocument(**story) for story in stories]
 
     def earningsCallExists(self, id: str) -> bool:
         return self.entityExists("callsJDWpoc", id)
