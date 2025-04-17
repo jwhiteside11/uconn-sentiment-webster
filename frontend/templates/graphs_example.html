@@ -154,19 +154,19 @@
       const API_URL = "{{ api_url }}"
       const wbsSummary = JSON.parse('{{ summary }}'.replaceAll("&#39;", '"'))
     </script>
-    <script src="{{ url_for('static', filename='js/graph.js') }}"></script>
 
     <script>
       // Initialize the dial
-      const dial2 = new ScoreDial(0.151, "Customer Service", 'sm');
-      const dial3 = new ScoreDial(0.751, "Financial Performance", 'sm');
-      const dial4 = new ScoreDial(-0.151, "Technology", 'sm');
-      const dial5 = new ScoreDial(-0.851, "Risk Management and Compliance", 'sm');
+      // const dial2 = new ScoreDial(0.151, "Customer Service", 'sm');
+      // const dial3 = new ScoreDial(0.751, "Financial Performance", 'sm');
+      // const dial4 = new ScoreDial(-0.151, "Leadership", 'sm');
+      // const dial5 = new ScoreDial(-0.851, "Risk Management and Compliance", 'sm');
       // Example of how to update the value
       // You can call this function with any value between -1 and 1
       // dial.setValue(-0.5);
       
       // makeChart('myChart2')
     </script>
+    <script src="{{ url_for('static', filename='js/graph.js') }}"></script>
   </body>
 </html>

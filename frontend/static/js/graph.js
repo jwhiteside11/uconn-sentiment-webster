@@ -70,11 +70,11 @@ class ScoreDial {
       const subtextContainer = document.createElement('div');
       subtextContainer.style.width = "148px";
       subtextContainer.style.marginLeft = "-12px";
-      const subtext = document.createElement("p");
-      subtext.style.textAlign = "center";
-      subtext.textContent = text;
+      this.label = document.createElement("p");
+      this.label.style.textAlign = "center";
+      this.label.textContent = text;
 
-      subtextContainer.appendChild(subtext);
+      subtextContainer.appendChild(this.label);
       dialArticle.appendChild(subtextContainer);
     }
 
@@ -131,8 +131,23 @@ const GRAPH_URL = `${getURL()}/search_news/summary`
 const otherSummaries = {}
 var selectedSummary = null;
 var averages = {};
+var category_averages = {};
 
+// Initialize the dials
 const dial1 = new ScoreDial("", "");
+const dial2 = new ScoreDial(0.751, "Customer Service", 'sm');
+const dial3 = new ScoreDial(0.151, "Financial Performance", 'sm');
+const dial4 = new ScoreDial(-0.851, "Leadership", 'sm');
+const dial5 = new ScoreDial(-0.151, "Risk Management and Compliance", 'sm');
+
+const categories = [
+  "Customer Service",
+  "Financial Performance",
+  "Risk Management and Compliance",
+  "Corporate Social Responsibility",
+  "Leadership",
+  "Technology",
+]
 
 const bankNames = {
   "FCNCA": "First Citizens BancShares, Inc.",
@@ -196,10 +211,17 @@ const updateSummary = (ticker) => {
   findAverages()
   
   dial1.setValues(averages["avg_total"], bankNames[ticker])
+  // dial2.setValues(category_averages[dial2.label.textContent]["avg_total"])
+  dial3.setValues(category_averages[dial3.label.textContent]["avg_total"])
+  // dial4.setValues(category_averages[dial4.label.textContent]["avg_total"])
+  // dial5.setValues(category_averages[dial5.label.textContent]["avg_total"])
 }
 
 const findAverages = () => {
   const mo_totals = {};
+  category_averages = {};
+  categories.forEach(cat => category_averages[cat] = {weighted_score: 0, magnitude: 0})
+
   selectedSummary["documents"].forEach(hit => {
     const [dayow, mo_day, year, time] = hit["date"].split(",")
     key = `${mo_day.trim().substring(0, 3)} ${year.trim().substring(2)}`
@@ -209,7 +231,22 @@ const findAverages = () => {
     } else {
       mo_totals[key] = [hit["weighted_score"], hit["magnitude"]]
     }
+
+    const keywords = JSON.parse(hit["keywords"])
+    for (let cat in keywords) {
+      category_averages[cat]["weighted_score"] += keywords[cat]["weighted_score"]
+      category_averages[cat]["magnitude"] += keywords[cat]["magnitude"]
+    }
   });
+
+  categories.forEach(cat => {
+    if (category_averages[cat]["magnitude"] === 0) {
+      category_averages[cat]["avg_total"] = 0
+    } else {
+      category_averages[cat]["avg_total"] = category_averages[cat]["weighted_score"] / category_averages[cat]["magnitude"];
+    }
+  });
+  console.log(category_averages);
 
   let total = 0
   let cnt = 0
