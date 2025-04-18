@@ -5,24 +5,57 @@
       color: #000000;
       text-decoration: none;
     }
+
+    body {
+      width: 800px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin: 0;
+      margin-left: calc((100% - 800px) / 2);
+      font-family: Inter, sans-serif;
+    }
+
+    h1 {
+      margin: 96px 0 32px;
+    }
+
+    .ticker-select {
+      display: flex;
+      align-items: center;
+      align-self: flex-start;
+    }
+
+    .ticker-select p {
+      margin: 16px 16px 16px 0;
+    }
+
+    #search-bar {
+      width: 100%;
+    }
+
+    #search-results {
+      width: 800px;
+    }
   </style>
 </head>
 <html>
   <body>
     <h1>Search news articles</h1>
 
-    <p>Ticker:</p>
-    <select name="ticker" id="ticker-select">
-      <option value="WBS">WBS</option>
-      {% for item in ticker_list %}
-        {% if item.value != "WBS" %}
-          <option value="{{item.value}}">{{ item.value }}</option>
-        {% endif %}
-      {% endfor %}
-    </select>
-
-    <p>Search:</p>
     <input type="text" name="search_term" id="search-bar"/>
+
+    <div class="ticker-select">
+      <p>Ticker:</p>
+      <select name="ticker" id="ticker-select">
+        <option value="WBS">WBS</option>
+        {% for item in ticker_list %}
+          {% if item.value != "WBS" %}
+            <option value="{{item.value}}">{{ item.value }}</option>
+          {% endif %}
+        {% endfor %}
+      </select>
+    </div>
 
     <div id="search-results">
     </div>

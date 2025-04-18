@@ -1,84 +1,51 @@
-import subprocess
 import requests
-from typing import List
-import pandas as pd
-import time
+from typing import List, Union
 import os
 import json
 
-import fetch_utils
+class EarningsCallTranscript:
+    def __init__(self, ticker: str, year: int, quarter: int, date: str, paragraphs: list[str], score: float = 0, magnitude: float = 0, id: str = ""):
+        self.ticker = ticker
+        self.year = year
+        self.quarter = quarter
+        self.date = date
+        self.paragraphs = paragraphs
+        self.score = score
+        self.magnitude = magnitude
 
+    def get_key(self):
+      return f'call-{self.ticker}-Y{self.year}-Q{self.quarter}'
+
+APININJAS_API_KEY = os.getenv('APININJAS_API_KEY', "")
 
 def get_authenticated(url):
   # use headers for API key
-  headers = {'X-Api-Key': os.getenv('APININJAS_API_KEY')}
+  headers = {'X-Api-Key': APININJAS_API_KEY}
   return requests.get(url, headers=headers)
 
-
-'''
-Fetch a specified earning calls from API Ninjas (requires API key)
-
-Output: paragraphs from the specified earnings call
-Example usage:
-  p_res = earnings_calls("MSFT", year=2025, quarter=1)
-'''
-def earnings_calls(ticker: str, year: int, quarter: int) -> List[str]:
-  source = get_authenticated(f"https://api.api-ninjas.com/v1/earningstranscript?ticker={ticker}&year={year}&quarter={quarter}")
-  if source.status_code != 200:
-    print("Error:", source.status_code, source.text)
-    return []
+# Fetch a specified earning calls from API Ninjas (requires API key)
+def fetch_earnings_call(ticker: str, year: int, quarter: int) -> Union[List[str], dict]:
+  res = get_authenticated(f"https://api.api-ninjas.com/v1/earningstranscript?ticker={ticker}&year={year}&quarter={quarter}")
+  if res.status_code != 200:
+    return {"error": f"{res.status_code}: {res.text}", "ticker": ticker, "year": year, "quarter": quarter}
   
   try:
-    resObj = json.loads(source.text)
-    paragraphs = resObj['transcript'].split('\n')
-  except:
-    print("Failed to decode JSON response.", ticker, f"{year}Q{quarter}")
-    return []
-
-  return paragraphs
-
-
-'''
-Scrape earning calls for the past 8 quarters for the specified ticker
-
-Output: saves list of paragraphs as csv
-Example usage:
-  earnings_dict = save_earnings_calls("MSFT")
-'''
-def save_earnings_calls(ticker: str):
-  past8Q = fetch_utils.get_past_8_quarters()
+    resObj = json.loads(res.text)  
+  except Exception as e:
+    return {"error": f"{e}", "ticker": ticker, "year": year, "quarter": quarter}
   
-  [firstY, firstQ] = past8Q[-1]
-  [lastY, lastQ] = past8Q[0]
-  file_path = f'earnings-call-{ticker}-{firstY}Q{firstQ}-{lastY}Q{lastQ}.xlsx'
-
-  dfs = []
-  for (year, quarter) in past8Q:
-    res = earnings_calls(ticker, year, quarter)
-    dfs.append(pd.DataFrame({f"{year} Q{quarter}" : res}))
-    # sleep to avoid rate limiting
-    time.sleep(2)
-
-  df = pd.concat(dfs, axis=1, join='outer')
-  # write dataframe to local file
-  df.to_excel(file_path)
-
-  # copy local file to google cloud
-  subprocess.run(["gcloud", "storage", "cp", f"{file_path}", "gs://earnings-calls-raw/"])
-
-  # remove local file
-  os.remove(file_path)
-
-
+  if type(resObj) != dict:
+    return {"error": "earnings call not available", "ticker": ticker, "year": year, "quarter": quarter}
+ 
+  return resObj
 
 # driver for running in production
 def run_program():
-  save_earnings_calls("INTU")
+  pass
 
 # driver for testing different functions
 def test_program():
-  p = earnings_calls("MSFT", 2024, 3)
-  print(p)
+  pass
 
 
 # main driver

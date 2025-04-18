@@ -10,36 +10,34 @@ services:
       - typesense
       - model
       - fetchers
+    container_name: reverse_proxy
 
   auth:
     build: ./auth-server
     image: auth_server:latest
-    ports:
-      - "5200:5200"
     environment:
       - SECRET_KEY=supersecretkey
+    container_name: auth_server
 
   fetchers:
     build: ./data-fetchers
     image: fetch_server:latest
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
-    ports:
-      - "5300:5300"
     restart: always
+    depends_on:
+      - typesense
+      - model
+    container_name: fetch_server
 
   model:
     build: ./sentiment-model
     image: model_server:latest
-    ports:
-      - "5400:5400"
     restart: always
+    container_name: model_server
 
   typesense:
     image: typesense/typesense:28.0
-    ports:
-      - "8108:8108"
     volumes:
       - /tmp/data:/data
     command: --data-dir /data --api-key=Hu52dwsas2AdxdE
     restart: always
+    container_name: typesense

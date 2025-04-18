@@ -3,14 +3,16 @@ import json
 
 class AuthClient:
     def __init__(self):
-        self.auth_url = 'http://host.docker.internal:5200'
+        self.auth_url = 'http://auth_server:5200'
     
     def validate_passkey(self, passkey: str):
         try:
-            res = requests.post(f'{self.auth_url}/validate', json={"passkey": passkey}).json()
-            return res
+            res = requests.post(f'{self.auth_url}/validate', json={"passkey": passkey})
+            if res.status_code != 200:
+                return {"error": f"ERROR {res.text}"}
+            return res.json()
         except Exception as e:
-            return {"message": f"ERROR {e}"}
+            return {"error": f"ERROR {e}"}
 
 
 def run_program():

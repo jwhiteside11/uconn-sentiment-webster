@@ -1,24 +1,181 @@
 <!DOCTYPE html>
 <html>
+  <head>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.8.0"></script>
+    <style>
+      body {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin: 0;
+        font-family: Inter, sans-serif;
+      }
+
+      body > * {
+        margin-bottom: 48px;
+      }
+
+      header {
+        width: calc(100% - 192px);
+        margin: 24px 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      header h2 {
+        font-size: 18px;
+        font-weight: 500;
+        margin: 8px 0;
+      }
+
+      .ticker-select-container {
+        width: 700px;
+      }
+
+      #sm-dial-container, #lg-dial-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-color: white;
+      }
+
+      #sm-dial-container {
+        align-items: flex-start;
+        justify-content: space-between;
+        height: 196px;
+        width: 700px;
+      }
+    
+      #lg-dial-container {
+        height: 360px;
+      }
+
+      .dial {
+        position: relative;
+      }
+
+      .dial.sm {
+        width: 120px;
+        height: 120px;
+      }
+
+      .dial.lg {
+        width: 360px;
+        height: 360px;
+      }
+    
+      .dial svg {
+        width: 100%;
+        height: 100%;
+      }
+    
+      .dial-background {
+        fill: #eee;
+      }
+    
+      .dial-value {
+        stroke-dashoffset: 0;
+        stroke-dasharray: 0;
+        transition: stroke-dashoffset 1s ease;
+      }
+    
+      .dial-text {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        text-align: center;
+      }
+    
+      .score-value {
+        font-weight: bold;
+        margin: 0;
+      }
+
+      .dial.sm .score-value {
+        font-size: 36px;
+      }
+
+      .dial.lg .score-value {
+        font-size: 76px;
+      }
+    
+      .bank-name {
+        font-size: 24px;
+        margin: 0;
+        margin-top: 20px;
+      }
+
+      .chart-contain {
+        width: 900px;
+        margin-left: 104px;
+      }
+
+      pre {
+        white-space: pre-wrap;
+        font-family: monospace;
+      }
+
+      #summary-results {
+        width: 700px;
+      }
+    </style>
+  </head>
   <body>
-    <h1>Graph news articles</h1>
+    <header>
+      <div>
+        <h2>UCONN Stamford Sentiment Engine</h2>
+        <h2>Webster Bank Project</h2>
+      </div>
+      <p onclick='document.cookie = "WBS-API-PASSKEY=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;"; window.location.replace("/login");' style="cursor: pointer;">Logout</p>
+    </header>
 
-    <p>Ticker:</p>
-    <select name="ticker" id="ticker-select">
-      <option value="WBS">WBS</option>
-      {% for item in ticker_list %}
-        {% if item.value != "WBS" %}
-          <option value="{{item.value}}">{{ item.value }}</option>
-        {% endif %}
-      {% endfor %}
-    </select>
-
-    <div id="summary-results">
-      {% for item in summary.documents %}
-        <p>{{ item }}</p>
-      {% endfor %}
+    <div class="ticker-select-container">
+      <select name="ticker" id="ticker-select">
+        <option value="WBS">WBS</option>
+        {% for item in ticker_list %}
+          {% if item.value != "WBS" %}
+            <option value="{{item.value}}">{{ item.value }}</option>
+          {% endif %}
+        {% endfor %}
+      </select>
+    </div>
+    
+    <div id="lg-dial-container"></div>
+    <div id="sm-dial-container"></div>
+    
+    <div class="chart-contain">
+      <canvas id="myChart"></canvas>
     </div>
 
+    <div class="chart-contain">
+      <canvas id="myChart2"></canvas>
+    </div>
+
+    <div id="summary-results">
+      <!-- {% for item in summary.documents %}
+        <p>{{ item }}</p>
+      {% endfor %} -->
+    </div>
+
+    <script>
+      const API_URL = "{{ api_url }}"
+      const wbsSummary = JSON.parse('{{ summary }}'.replaceAll("&#39;", '"'))
+    </script>
+
+    <script>
+      // Initialize the dial
+      // const dial2 = new ScoreDial(0.151, "Customer Service", 'sm');
+      // const dial3 = new ScoreDial(0.751, "Financial Performance", 'sm');
+      // const dial4 = new ScoreDial(-0.151, "Leadership", 'sm');
+      // const dial5 = new ScoreDial(-0.851, "Risk Management and Compliance", 'sm');
+      // Example of how to update the value
+      // You can call this function with any value between -1 and 1
+      // dial.setValue(-0.5);
+      
+      // makeChart('myChart2')
+    </script>
     <script src="{{ url_for('static', filename='js/graph.js') }}"></script>
   </body>
 </html>

@@ -4,7 +4,7 @@ from typing import List, Dict, Tuple
 import pandas as pd
 import time
 import os
-from datastore_client import DatastoreClient, NewsDocument
+from datastore_client import DatastoreClient, CategoryNewsDocument
 
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
@@ -116,7 +116,7 @@ def scrape_news_story_to_datastore(ticker: str, url: str):
   if "error" in res:
     print(f"scrape failed: {url}", res['error'])
   else:
-    news_doc = NewsDocument(ticker, **res)
+    news_doc = CategoryNewsDocument(ticker, **res)
     print(f"scraped: {url}")
     ds_client.createNewsStoryEntity(news_doc)
   return res

@@ -3,15 +3,11 @@ import os
 import pandas as pd
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 from torch.nn.functional import softmax
-import nltk
 from nltk.sentiment import SentimentIntensityAnalyzer
 from nltk.tokenize import sent_tokenize
 from sklearn.preprocessing import MinMaxScaler
 
 # Required nltk files, only downloaded on first use
-nltk.download('vader_lexicon')
-nltk.download('punkt')
-nltk.download('punkt_tab')
 
 model = AutoModelForSequenceClassification.from_pretrained('ProsusAI/finBERT')
 tokenizer = AutoTokenizer.from_pretrained('ProsusAI/finBERT')
