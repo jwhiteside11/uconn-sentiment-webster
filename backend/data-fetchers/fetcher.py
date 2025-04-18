@@ -187,9 +187,11 @@ class Fetcher:
     updated_doc.paragraph_kws = paragraph_kws
 
     keywords = updated_doc.keywords
+
+    # use paragrah scores to form article score
     for score_obj in paragraph_kws:
       for cat in score_obj["keywords"].keys():
-        if cat not in keywords:
+        if cat not in keywords or "score" not in keywords[cat]:
           existing_kw = score_obj["keywords"][cat]["keywords"]
           keywords[cat] = {"count": len(existing_kw), "keywords": existing_kw, "score": 0, "weighted_score": 0, "magnitude": 0}
 
