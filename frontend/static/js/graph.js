@@ -130,6 +130,7 @@ class ScoreDial {
 const GRAPH_URL = `${getURL()}/search_news/summary`
 const otherSummaries = {}
 var selectedSummary = null;
+var selectedAverages = null;
 var averages = {};
 var category_averages = {};
 
@@ -181,22 +182,24 @@ function getCookie(name) {
 
 // Dials
 
-const fetchThenUpdateSummary = (ticker) => {
+const fetchThenUpdateSummary = async (chart, ticker) => {
   const headers = {"WBS-API-PASSKEY": getCookie("WBS-API-PASSKEY")}
-  fetch(`${GRAPH_URL}?ticker=${ticker}`, {headers})
-  .then(res => res.json())
-  .then(json => {
+  var chartRes = null;
+  try {
+    const res = await fetch(`${GRAPH_URL}?ticker=${ticker}`, {headers})
+    const json = await res.json()
     console.log(json)
     otherSummaries[ticker] = json
     selectedSummary = json
-    updateSummary(ticker)
-  })
-  .catch(error => {
+    selectedAverages = {}
+    chartRes = updateSummary(chart, ticker)
+  } catch (error) {
       console.error('Error fetching data:', error);
-  });
+  };
+  return chartRes
 }
 
-const updateSummary = (ticker) => {
+const updateSummary = (chart, ticker) => {
   const elems = []
   selectedSummary["documents"].forEach(hit => {
     let p2 = document.createElement('pre');
@@ -209,19 +212,24 @@ const updateSummary = (ticker) => {
   const res_box = document.getElementById("summary-results")
   res_box.replaceChildren(...elems)
 
-  findAverages()
+  findAverages(ticker)
   
-  dial1.setValues(averages["avg_total"], bankNames[ticker])
-  dial2.setValues(category_averages[dial2.label.textContent]["avg_total"])
-  dial3.setValues(category_averages[dial3.label.textContent]["avg_total"])
-  dial4.setValues(category_averages[dial4.label.textContent]["avg_total"])
-  dial5.setValues(category_averages[dial5.label.textContent]["avg_total"])
+  dial1.setValues(averages[ticker]["totals"]["avg_total"], bankNames[ticker])
+  dial2.setValues(selectedAverages[dial2.label.textContent]["avg_total"])
+  dial3.setValues(selectedAverages[dial3.label.textContent]["avg_total"])
+  dial4.setValues(selectedAverages[dial4.label.textContent]["avg_total"])
+  dial5.setValues(selectedAverages[dial5.label.textContent]["avg_total"])
+
+  if (chart) {
+    chart.destroy()
+  }
+  return makeChart('myChart')
 }
 
-const findAverages = () => {
+const findAverages = (ticker) => {
   const mo_totals = {};
-  category_averages = {};
-  categories.forEach(cat => category_averages[cat] = {weighted_score: 0, magnitude: 0})
+  selectedAverages = {};
+  categories.forEach(cat => selectedAverages[cat] = {weighted_score: 0, magnitude: 0})
 
   selectedSummary["documents"].forEach(hit => {
     const [dayow, mo_day, year, time] = hit["date"].split(",")
@@ -234,19 +242,22 @@ const findAverages = () => {
     }
     const keywords = typeof(hit["keywords"]) === "string" ? JSON.parse(hit["keywords"]) : hit["keywords"]
     for (let cat in keywords) {
-      category_averages[cat]["weighted_score"] += keywords[cat]["weighted_score"]
-      category_averages[cat]["magnitude"] += keywords[cat]["magnitude"]
+      selectedAverages[cat]["weighted_score"] += keywords[cat]["weighted_score"]
+      selectedAverages[cat]["magnitude"] += keywords[cat]["magnitude"]
     }
   });
 
   categories.forEach(cat => {
-    if (category_averages[cat]["magnitude"] === 0) {
-      category_averages[cat]["avg_total"] = 0
+    if (selectedAverages[cat]["magnitude"] === 0) {
+      selectedAverages[cat]["avg_total"] = 0
     } else {
-      category_averages[cat]["avg_total"] = category_averages[cat]["weighted_score"] / category_averages[cat]["magnitude"];
+      selectedAverages[cat]["avg_total"] = selectedAverages[cat]["weighted_score"] / selectedAverages[cat]["magnitude"];
     }
   });
-  console.log(category_averages);
+
+  selectedAverages["by_month"] = mo_totals
+  category_averages[ticker] = selectedAverages
+  // console.log(category_averages);
 
   let total = 0
   let cnt = 0
@@ -255,17 +266,34 @@ const findAverages = () => {
     cnt += mo_totals[key][1]
   })
 
-  mo_totals["avg_total"] = total / cnt
+  mo_totals["totals"] = {
+    "avg_total": total / cnt,
+    "weighted_total": total,
+    "total_magnitude": cnt,
+  }
   
-  console.log(mo_totals)
-  averages = mo_totals
+  // console.log(mo_totals)
+  averages[ticker] = mo_totals
 }
 
 // Line graph
 
+const monthMap = { "Jan": 1, "Feb": 2, "Mar": 3, "Apr": 4, "May": 5, "Jun": 6, "Jul": 7, "Aug": 8, "Sep": 9, "Oct": 10, "Nov": 11, "Dec": 12 };
+
 const getMonths = () => {
-  let months = Array.from(Object.keys(averages)).filter(v => v !== 'avg_total')
-  months.sort((a, b) => {
+  const allMonths = {}
+  for (let ticker in averages) {
+    allMonths[ticker] = Array.from(Object.keys(averages[ticker])).filter(v => v !== 'totals')
+  }
+
+  allMonths["combined"] = new Set()
+  for (let ticker in allMonths) {
+    allMonths["combined"] = new Set([...allMonths["combined"], ...allMonths[ticker]])
+  }
+
+  allMonths["combined"] = [...allMonths["combined"]]
+
+  allMonths["combined"].sort((a, b) => {
     const moA = a.substring(0, 3)
     const moB = b.substring(0, 3)
     const yA = a.substring(4, 6)
@@ -276,39 +304,62 @@ const getMonths = () => {
     if (yA > yB) {
       return 1; // a comes after b
     }
-    if (moA < moB) {
+    if (monthMap[moA] < monthMap[moB]) {
       return -1; // a comes before b
     }
-    if (moA > moB) {
+    if (monthMap[moA] > monthMap[moB]) {
       return 1; // a comes after b
     }
     return 0; // a and b are equal
   });
-  console.log("MONTHS", months)
-  return months
+
+  console.log("MONTHS", allMonths)
+  return allMonths
 }
+
+const lineGraphColors = [
+  "#3366CC", // Blue
+  "#DC3912", // Red
+  "#FF9900", // Orange
+  "#109618", // Green
+  "#990099", // Purple
+  "#3B3EAC", // Indigo
+  "#0099C6", // Cyan
+  "#DD4477", // Pink
+  "#66AA00", // Lime Green
+  "#B82E2E"  // Dark Red
+];
 
 const makeChart = (id) => {
   const months = getMonths();
-
+  const datasets = []
+  let i = 0;
+  for (let ticker in category_averages) {
+    const data = []
+    for (let mkey of months[ticker]) {
+      // console.log(mkey, category_averages[ticker]["by_month"])
+      if (mkey in category_averages[ticker]["by_month"]) {
+        data.push(category_averages[ticker]["by_month"][mkey][0] / category_averages[ticker]["by_month"][mkey][1])
+      } else {
+        data.push(null)
+      }
+    }
+    datasets.push({
+      label: ticker,
+      data,
+      borderColor: lineGraphColors[i],
+      borderWidth: 4,
+      fill: false
+    })
+    i++
+  }
+  // console.log("datasets", datasets)
   var ctx = document.getElementById(id).getContext('2d');
-  var lineChart = new Chart(ctx, {
+  return new Chart(ctx, {
     type: 'line',
     data: {
-      labels: ["Aug 24", "Sep 24", "Oct 24", "Nov 24", "Dec 24", "Jan 25"],
-      datasets: [{
-        label: 'Sales',
-        data: [30, 45, 60, 35, 50, 40],
-        borderColor: '#CEE9C3',
-        borderWidth: 4,
-        fill: false
-      }, {
-        label: 'Not Sales',
-        data: [20, 15, 30, 35, 80, 35],
-        borderColor: '#F8D49A',
-        borderWidth: 4,
-        fill: false
-      }]
+      labels: months["combined"],
+      datasets
     },
     options: {
       plugins: {
@@ -327,25 +378,28 @@ const makeChart = (id) => {
       },
       scales: {
         y: {
-          beginAtZero: true
+          min: -1,
+          max: 1,
         }
       }
     }
   });
 }
 
-document.addEventListener("DOMContentLoaded", () => {
+var chart = null;
+
+document.addEventListener("DOMContentLoaded", async () => {
   const ticker_select = document.getElementById("ticker-select")
-  fetchThenUpdateSummary(ticker_select.value)
-  setTimeout(() => makeChart('myChart'), 200)
+  chart = await fetchThenUpdateSummary(chart, ticker_select.value)
   
-  ticker_select.oninput = () => {
+  ticker_select.oninput = async () => {
     const ticker = ticker_select.value;
     if (otherSummaries[ticker] !== undefined) {
       selectedSummary = otherSummaries[ticker]
-      updateSummary(ticker)
+      selectedAverages = category_averages[ticker]
+      chart = updateSummary(chart, ticker)
     } else {
-      fetchThenUpdateSummary(ticker)
+      chart = await fetchThenUpdateSummary(chart, ticker)
     }
   }
 })
