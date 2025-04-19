@@ -13,37 +13,40 @@ def passkey_required(f):
         passkey = request.cookies.get('WBS-API-PASSKEY')
         if not passkey:
             return jsonify({"message": "Passkey is missing."}), 403
-        
+
         passkeyRes = api_client.validate(passkey).json()
         if "valid" not in passkeyRes or not passkeyRes["valid"]:
             return jsonify({"message": passkeyRes["error"]}), 403
-        
-        # If valid token, proceed with the request
+
         return f(*args, **kwargs)
-    
+
     return decorated_function
 
 # Base URL - redirect users to login page
 @app.route('/')
 def base():
-    return redirect(url_for('login'))
+    return redirect(url_for('login_get'))
 
-# Login page - users sign in using username and password
-#   - users get a passkey as a cookie on successful login
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-    username = request.args.get("username")
-    password = request.args.get("password")
+# Login page - renders login form
+@app.route('/login', methods=['GET'])
+def login_get():
+    return render_template("login.html")
+
+# Login handler - receives JSON credentials
+@app.route('/login', methods=['POST'])
+def login_post():
+    data = request.get_json()
+    username = data.get("username")
+    password = data.get("password")
 
     if username and password:
         loginRes = api_client.login(username, password).json()
         if "passkey" in loginRes:
-            response = make_response(redirect(url_for("search_news")))
-            # Set the cookie with name 'my_cookie' and value 'cookie_value'
+            response = jsonify({"success": True})
             response.set_cookie('WBS-API-PASSKEY', loginRes["passkey"], max_age=3600, samesite=None)
             return response
 
-    return render_template("login.html")
+    return jsonify({"success": False, "error": "Invalid login"}), 401
 
 # Search news using Typesense
 @app.route('/search_news', methods=['GET'])
@@ -53,8 +56,7 @@ def search_news():
     res = api_client.get_tickers(passkey).json()
     return render_template("search_news.html", ticker_list=res["tickers"], api_url=api_client.PUBLIC_API_URL)
 
-
-# Data visualization graphs - TODO
+# Data visualization graphs
 @app.route('/graph_news', methods=['GET'])
 @passkey_required
 def graph():
@@ -62,7 +64,6 @@ def graph():
     ticker_res = api_client.get_tickers(passkey).json()
     summary_res = api_client.get_summary("WBS", passkey).json()
     return render_template("graphs_example.html", ticker_list=ticker_res["tickers"], summary=summary_res)
-
 
 if __name__ == "__main__":
     app.run(debug=True)

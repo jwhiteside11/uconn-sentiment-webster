@@ -1,6 +1,6 @@
 services:
   rproxy:
-    build: 
+    build:
       context: ./backend/reverse-proxy
       dockerfile: Dockerfile.dev
     image: reverse_proxy_dev:latest
