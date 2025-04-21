@@ -11,7 +11,7 @@ CORS(app)
 def authenticate():
     data = request.json
     username = data.get("username")
-    password = data.get("password").encode()
+    password = data.get("password")
     
     res = auth.authenticate(username, password)
 
@@ -36,6 +36,3 @@ def validate():
 
 if __name__ == "__main__":
     app.run(debug=True)  
-
-
-

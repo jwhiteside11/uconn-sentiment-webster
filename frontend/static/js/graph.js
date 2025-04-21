@@ -101,7 +101,6 @@ class ScoreDial {
 
     // Update the path
     this.path.style.strokeDasharray = this.totalLength; // start path at full length to hide color
-    setTimeout(() => this.path.style.strokeDashoffset = dashOffset, 50) // set path to normalized value after 50ms to trigger animation
     this.path.style.strokeDashoffset = this.totalLength;
     this.path.style.stroke = this.getColor(value);
     this.path.style.transform = "rotate(90deg)"
