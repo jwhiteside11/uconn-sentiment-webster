@@ -1,5 +1,7 @@
 # UConn Sentiment Webster Project
 
+![alt text](/devops/images/dashboard.png)
+
 This repository contains the full stack web application built for the UConn Stamford Sentiment Analysis Webster Project.
 
 ## Quick start
@@ -22,6 +24,8 @@ The frontend is visible at `localhost:8080`, and the backend at `localhost:5100`
 
 The frontend is deployed to App Engine, while the backend is deployed to Compute Engine. Select a folder for detailed deployment notes.
 
-## Frontend
+## Architecture Overview
 
-## Backend
+![alt text](/devops/images/architecture.png)
+
+A full stack web application backed by microservices running on Google Cloud.
