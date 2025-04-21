@@ -17,7 +17,7 @@ class Authenticator:
             return {"error": "Username and password are required"}
         
         try:
-            if username in self.users and bcrypt.checkpw(password, self.users[username]):
+            if username in self.users and bcrypt.checkpw(password.encode(), self.users[username]):
                 exp_time = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(hours=1)
                 token = jwt.encode({"username": username, "exp": exp_time}, self.SECRET_KEY, algorithm="HS256")
                 return {"passkey": token}
