@@ -1,0 +1,56 @@
+# This Compose file assumes you’re running Linux containers under Docker Desktop. 
+#If you switch to Windows containers, you’d need to adjust the base images 
+# (e.g. a Windows‑based Typesense build) and path semantics
+
+version: '3.8'
+
+services:
+  rproxy:
+    build: ./reverse-proxy
+    image: reverse_proxy:latest
+    ports:
+      - "5100:5100"
+    restart: always
+    depends_on:
+      - auth
+      - typesense
+      - model
+      - fetchers
+
+  auth:
+    build: ./auth-server
+    image: auth_server:latest
+    ports:
+      - "5200:5200"
+    environment:
+      - SECRET_KEY=supersecretkey
+    restart: always
+
+  fetchers:
+    build: ./data-fetchers
+    image: fetch_server:latest
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    ports:
+      - "5300:5300"
+    restart: always
+
+  model:
+    build: ./sentiment-model
+    image: model_server:latest
+    ports:
+      - "5400:5400"
+    restart: always
+
+  typesense:
+    image: typesense/typesense:28.0
+    ports:
+      - "8108:8108"
+    volumes:
+      - typesense-data:/data
+    command: --data-dir /data --api-key=Hu52dwsas2AdxdE
+    restart: always
+
+volumes:
+  typesense-data:
+    driver: local
