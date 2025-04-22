@@ -42,19 +42,19 @@ class DatastoreClient:
         self.client.put(entity)
 
     def newsStoryExists(self, url: str) -> bool:
-        return self.entityExists("newsJDWpoc", url)
+        return self.entityExists("newsByCategory", url)
     
     def createNewsStoryEntity(self, news_doc: CategoryNewsDocument) -> None:
-        return self.createEntityFromObject("newsJDWpoc", news_doc.url, news_doc)
+        return self.createEntityFromObject("newsByCategory", news_doc.url, news_doc)
 
     def getNewsDocByID(self, id: str) -> CategoryNewsDocument:
-        return CategoryNewsDocument(**self.getEntityByID("newsJDWpoc", id))
+        return CategoryNewsDocument(**self.getEntityByID("newsByCategory", id))
 
     def getAllNewsDocIDs(self, ticker: str = "") -> list[str]:
-        return self.getAllEntityIDsByTicker("newsJDWpoc", ticker)
+        return self.getAllEntityIDsByTicker("newsByCategory", ticker)
 
     def getAllNewsDocs(self, ticker: str = "") -> list[CategoryNewsDocument]:
-        stories = self.getAllEntitiesByTicker("newsJDWpoc", ticker)
+        stories = self.getAllEntitiesByTicker("newsByCategory", ticker)
         return [CategoryNewsDocument(**story) for story in stories]
 
     def earningsCallExists(self, id: str) -> bool:
